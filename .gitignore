@@ -1,6 +1,8 @@
 
 /__pycache__
 
+/downloads
+
 /venv
 
 bin/android/*
