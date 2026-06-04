@@ -1,0 +1,13 @@
+
+/__pycache__
+
+/venv
+
+bin/android/*
+!bin/android/.gitkeep
+
+bin/macos/*
+!bin/macos/.gitkeep
+
+bin/windows/*
+!bin/windows/.gitkeep
