@@ -1,24 +1,15 @@
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.anchorlayout import AnchorLayout
-from kivy.uix.image import Image
-from kivy.uix.textinput import TextInput
-from kivy.uix.button import Button
-from kivy.graphics import Color, Rectangle
 from kivy.uix.widget import Widget
 
-from kivy.core.window import Window
-
-Window.clearcolor = (1, 1, 1, 1)
-
-from download_videos import download_videos
+from download_video import download_videos
 
 from threading import Thread
 
 from kivy.clock import Clock
 
-from CustomGraphics import CustomGraphics
+import CustomGraphics
 
 from yt_dlp.utils import DownloadError
 
@@ -26,7 +17,10 @@ from AutoGrowTextInput import AutoGrowTextInput
 
 from IconButton import IconButton
 
-from DownloadButton import DownloadButton
+import Colors
+
+from kivy.core.window import Window
+Window.clearcolor = Colors.white
 
 class MainLayout(BoxLayout):
 
@@ -95,10 +89,18 @@ class MainLayout(BoxLayout):
         self.input = AutoGrowTextInput(
             size_hint_x=1
         )
+        CustomGraphics.set_border(
+            widget=self.input,
+            color=Colors.grey
+        )
 
         self.status = AutoGrowTextInput(
             size_hint_x=1,
             readonly=True
+        )
+        CustomGraphics.set_border(
+            widget=self.status,
+            color=Colors.grey
         )
 
         self.bottomBarHBoxLayout = BoxLayout(
@@ -119,7 +121,7 @@ class MainLayout(BoxLayout):
         )
         CustomGraphics.set_ellipse_bg(
             self.downloadButton,
-            
+            Colors.turqoise
         )
         self.downloadButton.bind(on_press=self.handle_download_button_press)
 
@@ -176,9 +178,7 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
 https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
             """
 
-            download_videos([
-                url
-            ])
+            download_video(url)
 
             Clock.schedule_once(
                 lambda dt: self.success_download("Downloaded video successfully")

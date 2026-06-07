@@ -1,58 +1,112 @@
 
+import ColorTypes
+
 from kivy.uix.widget import Widget
 from kivy.graphics import (
     Color,
     Rectangle,
-    Ellipse
+    Ellipse,
+    Line
 )
 
-class CustomGraphics():
+def set_rect_bg(
+    widget: Widget,
+    color: ColorTypes.ColorTuple
+) -> None:
 
-    @staticmethod
-    def set_rect_bg(
-        widget: Widget,
-        r: float,
-        g: float,
-        b: float,
-        a: float = 1
-    ) -> None:
+    if len(color) == 3:
+        r, g, b = color
+        a = 1.0
+    else:
+        r, g, b, a = color
 
-        with widget.canvas.before:
+    with widget.canvas.before:
 
-            Color(r, g, b, a)
+        Color(r, g, b, a)
 
-            widget.bg_rect = Rectangle(pos=widget.pos, size=widget.size)
+        widget.bg_rect = Rectangle(pos=widget.pos, size=widget.size)
 
-            def update_rect(
-                instance,
-                value
-            ):
-                instance.bg_rect.pos = instance.pos
-                instance.bg_rect.size = instance.size
+        def update_rect(
+            instance,
+            value
+        ):
+            instance.bg_rect.pos = instance.pos
+            instance.bg_rect.size = instance.size
 
-            # listen to size and position changes
-            widget.bind(pos=update_rect, size=update_rect)
+        # listen to size and position changes
+        widget.bind(pos=update_rect, size=update_rect)
 
-    @staticmethod
-    def set_ellipse_bg(
-        widget: Widget,
-        r: float,
-        g: float,
-        b: float,
-        a: float = 1
-    ) -> None:
+def set_ellipse_bg(
+    widget: Widget,
+    color: ColorTypes.ColorTuple
+) -> None:
 
-        with widget.canvas.before:
+    if len(color) == 3:
+        r, g, b = color
+        a = 1.0
+    else:
+        r, g, b, a = color
 
-            Color(r, g, b, a)  # Ellipse color
-            widget.bg_ellipse = Ellipse(pos=widget.pos, size=widget.size)
+    with widget.canvas.before:
 
-            def update_circle(
-                instance,
-                value
-            ):
-                instance.bg_ellipse.pos = instance.pos
-                instance.bg_ellipse.size = instance.size
+        Color(r, g, b, a)  # Ellipse color
+        widget.bg_ellipse = Ellipse(pos=widget.pos, size=widget.size)
 
-            # listen to size and position changes
-            widget.bind(pos=update_circle, size=update_circle)
+        def update_circle(
+            instance,
+            value
+        ):
+            instance.bg_ellipse.pos = instance.pos
+            instance.bg_ellipse.size = instance.size
+
+        # listen to size and position changes
+        widget.bind(pos=update_circle, size=update_circle)
+
+def set_border(
+    widget: Widget,
+    color: ColorTypes.ColorTuple,
+    widthP: int = 1
+) -> None:
+    
+    print(widget.background_color)
+
+    print(widget.background_normal)
+
+    print(widget.background_active)
+
+    print(widget.size_hint_y)
+
+
+    if len(color) == 3:
+        r, g, b = color
+        a = 1.0
+    else:
+        r, g, b, a = color
+
+    with widget.canvas.after:
+
+        Color(r, g, b, a)
+
+        widget.custom_border = Line(
+            rectangle=(
+                widget.x,
+                widget.y,
+                widget.width,
+                widget.height
+            ),
+            width=widthP
+        )
+
+        def update_border(
+            instance,
+            value
+        ):
+            instance.custom_border.rectangle = (
+                instance.x,
+                instance.y,
+                instance.width,
+                instance.height
+            )
+
+        # listen to size and position changes
+        widget.bind(pos=update_border, size=update_border)
