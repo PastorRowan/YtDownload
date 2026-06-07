@@ -2,9 +2,21 @@
 import yt_dlp
 import config
 
+class YTDLPLogger:
+
+    def debug(self, msg):
+        print(msg)
+
+    def warning(self, msg):
+        print(msg)
+
+    def error(self, msg):
+        print(msg)
+
 def download_videos(urlArray):
 
     ydl_opts = {
+        "logger": YTDLPLogger(),
         "ffmpeg_location": config.FFMPEG_PATH,
         "js_runtimes": {
             "deno": {
