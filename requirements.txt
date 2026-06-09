@@ -1,3 +1,5 @@
+asyncgui==0.6.3
+asynckivy==0.6.4
 certifi==2026.5.20
 charset-normalizer==3.4.7
 docutils==0.23
@@ -8,7 +10,12 @@ Kivy-Garden==0.1.5
 kivy_deps.angle==0.4.0
 kivy_deps.glew==0.3.1
 kivy_deps.sdl2==0.8.0
+kivymd @ https://github.com/kivymd/KivyMD/archive/master.zip#sha256=c09db9f44a04e241b56c7cef8c961bb00ee036c5ae92d57df65f89592af5843f
+materialshapes==0.3
+materialyoucolor==3.0.2
 packaging==26.2
+pillow==12.2.0
+pycairo==1.29.0
 Pygments==2.20.0
 pypiwin32==223
 pywin32==312
