@@ -41,7 +41,7 @@ class DownloadOptionsDialogue(MDDialog):
         self.selectedOptions = {
             "fileName": "",
             "downloadType": "",
-            "videoQuality": "",
+            "videoFormat": "",
             "audioFormat": ""
         }
 
@@ -205,16 +205,16 @@ class DownloadOptionsDialogue(MDDialog):
         )
         self.add_widget(self.container)
 
-        self.selectVideoQualityDialogue = SelectVideoQualityDialogue()
-        self.selectVideoQualityDialogue.bind(
-            on_confirm=lambda selectVideoQualityDialogue, videoQuality:
-                self.onVideoQualityConfirmed(selectVideoQualityDialogue, videoQuality)
+        self.selectVideoFormatDialogue = SelectVideoQualityDialogue()
+        self.selectVideoFormatDialogue.bind(
+            on_confirm=lambda selectVideoFormatDialogue, videoFormat:
+                self.onVideoFormatConfirmed(selectVideoFormatDialogue, videoFormat)
         )
 
         self.selectAudioFormatDialogue = SelectAudioFormatDialogue()
         self.selectAudioFormatDialogue.bind(
             on_confirm=lambda selectAudioFormatDialogue, audioFormat:
-                self.onAudioQualityConfirmed(selectAudioFormatDialogue, audioFormat)
+                self.onAudioFormatConfirmed(selectAudioFormatDialogue, audioFormat)
         )
 
     def onDownloadTypeSelect(self, downloadType):
@@ -223,20 +223,20 @@ class DownloadOptionsDialogue(MDDialog):
     def onFormatPreferenceChipRelease(self, formatPreferenceButtonName):
 
         if formatPreferenceButtonName == "resolution":
-            print(formatPreferenceButtonName)
-            self.selectVideoQualityDialogue.open()
+            self.selectVideoFormatDialogue.open()
         elif formatPreferenceButtonName == "audio":
-            print(formatPreferenceButtonName)
             self.selectAudioFormatDialogue.open()
         else:
-            print(formatPreferenceButtonName)
+            pass
 
-    def onVideoQualityConfirmed(self, selectVideoQualityDialogue, videoQuality):
-        self.selectedOptions["videoQuality"] = videoQuality
-        selectVideoQualityDialogue.dismiss()
+        print(formatPreferenceButtonName)
+
+    def onVideoFormatConfirmed(self, selectVideoFormatDialogue, videoFormat):
+        self.selectedOptions["videoFormat"] = videoFormat
+        selectVideoFormatDialogue.dismiss()
         print(self.selectedOptions)
 
-    def onAudioQualityConfirmed(self, selectAudioFormatDialogue, audioFormat):
+    def onAudioFormatConfirmed(self, selectAudioFormatDialogue, audioFormat):
         self.selectedOptions["audioFormat"] = audioFormat
         selectAudioFormatDialogue.dismiss()
         print(self.selectedOptions)

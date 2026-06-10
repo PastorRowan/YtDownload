@@ -4,26 +4,25 @@ from kivymd.uix.dialog import (
     MDDialogHeadlineText,
     MDDialogContentContainer,
     MDDialogButtonContainer,
-    MDDialogSupportingText,
     MDDialogIcon
 )
 from kivymd.uix.widget import Widget
-from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import (
     MDButton,
-    MDButtonText,
-    MDButtonIcon,
-    MDFabButton,
-    MDExtendedFabButtonIcon,
-    MDExtendedFabButtonText
+    MDButtonText
 )
 
 from kivymd.uix.list import (
-    MDListItem, MDListItemSupportingText, MDListItemLeadingIcon
+    MDListItem,
+    MDListItemSupportingText,
+    MDListItemLeadingIcon,
+    MDListItemTrailingIcon
 )
 
 from kivymd.uix.menu import MDDropdownMenu
+
+from kivy.clock import Clock
 
 class SelectAudioFormatDialogue(MDDialog):
 
@@ -47,14 +46,11 @@ class SelectAudioFormatDialogue(MDDialog):
             MDListItemSupportingText(
                 text="OPUS"
             ),
-            #style="outlined",
-            #size_hint=(None, None),
-            width=1200,
-            height=600,
-            md_bg_color=(0, 1, 0, 1),
-            size_hint_min_x=1,
-            size_hint_min_y=1,
-            on_release=lambda *_: self.audioFileFormatDropDownMenu.open(),
+            MDListItemTrailingIcon(
+                icon="file-music-outline"
+            ),
+            size_hint=(1, None),
+            on_release=lambda *_: self.onAudioFileFormatDropDownMenuButtonRelease()
         )
 
         self.audioFileFormatDropDownMenuItems = [
@@ -65,24 +61,23 @@ class SelectAudioFormatDialogue(MDDialog):
         self.audioFileFormatDropDownMenu = MDDropdownMenu(
             caller=self.audioFileFormatDropDownMenuButton, # the widget that opens it
             items=self.audioFileFormatDropDownMenuItems,
-            width_mult=4
+            position="bottom",
+            hor_growth="right",
+            ver_growth="down"
         )
 
-        self.audioQualityDropDownMenuButton = MDButton(
-            MDButtonIcon(
+        self.audioQualityDropDownMenuButton = MDListItem(
+            MDListItemLeadingIcon(
                 icon="high-definition-box"
             ),
-            MDButtonText(
+            MDListItemSupportingText(
                 text="192 Kbps",
-                size_hint=(1, None)
             ),
-            MDButtonIcon(
+            MDListItemTrailingIcon(
                 icon="high-definition-box"
             ),
-            style="outlined",
             size_hint=(1, None),
-            pos_hint={"center_x": 0.5},
-            on_release=lambda *_: self.audioQualityDropDownMenu.open()
+            on_release=lambda *_: self.onAudioQualityDropDownMenuButtonRelease()
         )
 
         self.audioQualityDropDownMenuItems = [
@@ -96,7 +91,9 @@ class SelectAudioFormatDialogue(MDDialog):
         self.audioQualityDropDownMenu = MDDropdownMenu(
             caller=self.audioQualityDropDownMenuButton, # the widget that opens it
             items=self.audioQualityDropDownMenuItems,
-            width_mult=4
+            position="bottom",
+            hor_growth="right",
+            ver_growth="down"
         )
 
         self.add_widget(
@@ -110,64 +107,46 @@ class SelectAudioFormatDialogue(MDDialog):
             )
         )
 
-        content = MDDialogContentContainer(
-            orientation="vertical",
-            spacing="12dp",
-            padding="12dp",
-            size_hint=(1, None)
-        )
+        self.add_widget(
 
-        content.add_widget(
-            MDLabel(
-                text="Audio file format"
-            )
-        )
+            MDDialogContentContainer(
+            
+                MDLabel(text="Audio file format"),
+                self.audioFileFormatDropDownMenuButton,
 
-        content.add_widget(
-            self.audioFileFormatDropDownMenuButton
-        )
-
-        content.add_widget(
-            MDLabel(
-                text="Audio quality"
-            )
-        )
-        content.add_widget(
-            MDDialogButtonContainer(
+                MDLabel(text="Audio quality"),
                 self.audioQualityDropDownMenuButton,
-                orientation="horizontal",
-                size_hint=(1, None),
-                # adaptive_height=True
-            )
-        )
 
-        content.add_widget(
-            MDDialogButtonContainer(
-                Widget(
-                    size_hint=(1, None),
-                    height=0
-                ),
-                MDButton(
-                    MDButtonText(
-                        text="Cancel"
+                MDDialogButtonContainer(
+                    Widget(
+                        size_hint=(1, None),
+                        height=0
                     ),
-                    style="text",
-                    on_release=lambda x: self.dismiss()
-                ),
-                MDButton(
-                    MDButtonText(
-                        text="Confirm"
+                    MDButton(
+                        MDButtonText(
+                            text="Cancel"
+                        ),
+                        style="text",
+                        on_release=lambda x: self.dismiss()
                     ),
-                    style="text",
-                    on_release=lambda x: self._on_confirm()
+                    MDButton(
+                        MDButtonText(
+                            text="Confirm"
+                        ),
+                        style="text",
+                        on_release=lambda x: self._on_confirm()
+                    ),
+                    spacing="8dp"
                 ),
-                spacing="8dp"
+
+                orientation="vertical",
+                spacing="12dp",
+                padding="12dp",
+                size_hint=(1, None)
+
             )
+
         )
-
-        self.add_widget(content)
-
-        self.audioFileFormatDropDownMenuButton.width = 600
 
     def setAudioFormat(self, key, value):
         self.audioFormat[key] = value
@@ -178,6 +157,34 @@ class SelectAudioFormatDialogue(MDDialog):
             "text": value,
             "on_release": lambda *_: self.setAudioFormat(key, value)
         }
+
+    def onAudioFileFormatDropDownMenuButtonRelease(self):
+
+        menu = self.audioFileFormatDropDownMenu
+        caller = self.audioFileFormatDropDownMenuButton
+
+        def openMenu(*_):
+            menu.open()
+            menu.width = caller.width
+            wx, wy = caller.to_window(*caller.pos)
+            menu.x = wx
+            menu.y = wy - menu.height
+
+        Clock.schedule_once(openMenu)
+
+    def onAudioQualityDropDownMenuButtonRelease(self):
+
+        menu = self.audioQualityDropDownMenu
+        caller = self.audioQualityDropDownMenuButton
+
+        def openMenu(*_):
+            menu.open()
+            menu.width = caller.width
+            wx, wy = caller.to_window(*caller.pos)
+            menu.x = wx
+            menu.y = wy - menu.height
+
+        Clock.schedule_once(openMenu)
 
     def on_confirm(self, videoQuality):
         """
