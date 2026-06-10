@@ -26,6 +26,10 @@ from kivymd.uix.chip import (
     MDChipText
 )
 
+from screens.HomeScreen.SelectVideoQualityDialogue import SelectVideoQualityDialogue
+
+from screens.HomeScreen.SelectAudioFormatDialogue import SelectAudioFormatDialogue
+
 class DownloadOptionsDialogue(MDDialog):
 
     def __init__(self, **kwargs):
@@ -34,75 +38,34 @@ class DownloadOptionsDialogue(MDDialog):
             **kwargs
         )
 
+        self.selectedOptions = {
+            "fileName": "",
+            "downloadType": "",
+            "videoQuality": "",
+            "audioFormat": ""
+        }
+
         self.container = MDDialogContentContainer(
             orientation="vertical",
             spacing="12dp",
             padding="12dp"
         )
 
-        self.formatPreferenceHBox = MDBoxLayout(
-            orientation="horizontal",
+        self.fileNameFieldVBox = MDBoxLayout(
+            orientation="vertical",
             size_hint=(1, None),
-            spacing="12dp"
-        )
-        self.formatPreferenceHBox.add_widget(
-            MDChip( 
-                MDChipLeadingIcon(
-                    icon="high-definition-box"
-                ),
-                MDChipText(
-                    text="720"
-                ),
-                type="filter"
-            )
-        )
-        self.formatPreferenceHBox.add_widget(
-            MDChip(
-                MDChipLeadingIcon(
-                    icon="file-music-outline"
-                ),
-                MDChipText(
-                    text="Audio format"
-                ),
-                type="filter"
-            )
+            spacing="12dp",
+            adaptive_height=True
         )
 
-        """
-        
-        """
-
-        self.bottomBarContainer = MDDialogButtonContainer(
-            Widget(),
-            MDButton(
-                MDButtonIcon(
-                    icon="cancel"
-                ),
-                MDButtonText(
-                    text="Cancel"
-                ),
-                style="outlined"
-            ),
-            MDButton(
-                MDButtonIcon(
-                    icon="check-underline"
-                ),
-                MDButtonText(
-                    text="Download"
-                ),
-                style="filled"
-            ),
-            spacing="8dp"
-        )
-
-        self.container.add_widget(
+        self.fileNameFieldVBox.add_widget(
             MDLabel(
                 text="File name",
                 size_hint=(1, None),
                 height=30
             )
         )
-        self.container.add_widget(
+        self.fileNameFieldVBox.add_widget(
             MDTextField(
                 size_hint=(1, None),
                 text="",
@@ -110,14 +73,23 @@ class DownloadOptionsDialogue(MDDialog):
                 multiline=False
             )
         )
-        self.container.add_widget(
+
+        self.downloadTyeVBox = MDBoxLayout(
+            orientation="vertical",
+            size_hint=(1, None),
+            spacing="12dp",
+            adaptive_height=True
+        )
+
+        self.downloadTyeVBox.add_widget(
             MDLabel(
                 text="Download type",
                 size_hint=(1, None),
                 height=30
             )
         )
-        self.container.add_widget(
+
+        self.downloadTyeVBox.add_widget(
             MDSegmentedButton(
                 MDSegmentedButtonItem(
                     MDSegmentButtonIcon(
@@ -140,16 +112,90 @@ class DownloadOptionsDialogue(MDDialog):
             )
         )
 
-        self.container.add_widget(
+        self.formatPreferenceVBox = MDBoxLayout(
+            orientation="vertical",
+            size_hint=(1, None),
+            spacing="12dp",
+            adaptive_height=True
+        )
+
+        self.formatPreferenceChipButtonContainer = MDBoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            spacing="12dp",
+            adaptive_height=True
+        )
+        self.formatPreferenceChipButtonContainer.add_widget(
+            MDChip( 
+                MDChipLeadingIcon(
+                    icon="high-definition-box"
+                ),
+                MDChipText(
+                    text="720"
+                ),
+                type="filter",
+                on_release=lambda x: self.onFormatPreferenceChipRelease("resolution")
+            )
+        )
+        self.formatPreferenceChipButtonContainer.add_widget(
+            MDChip(
+                MDChipLeadingIcon(
+                    icon="file-music-outline"
+                ),
+                MDChipText(
+                    text="Audio format"
+                ),
+                type="filter",
+                on_release=lambda x: self.onFormatPreferenceChipRelease("audio")
+            )
+        )
+
+        self.formatPreferenceVBox.add_widget(
             MDLabel(
                 text="Format preference",
                 size_hint=(1, None),
                 height=30
             )
         )
+        self.formatPreferenceVBox.add_widget(
+            self.formatPreferenceChipButtonContainer
+        )
 
-        self.container.add_widget(self.formatPreferenceHBox)
+        self.bottomBarContainer = MDDialogButtonContainer(
+            Widget(
+                size_hint=(1, None),
+                height=0
+            ),
+            MDButton(
+                MDButtonIcon(
+                    icon="cancel"
+                ),
+                MDButtonText(
+                    text="Cancel"
+                ),
+                style="outlined",
+                on_release=lambda x: self.dismiss()
+            ),
+            MDButton(
+                MDButtonIcon(
+                    icon="check-underline"
+                ),
+                MDButtonText(
+                    text="Download"
+                ),
+                style="filled"
+            ),
+            spacing="8dp"
+        )
 
+        self.container.add_widget(self.fileNameFieldVBox)
+        self.container.add_widget(self.downloadTyeVBox)
+        self.container.add_widget(self.formatPreferenceVBox)
+        self.container.add_widget(
+            Widget(
+                size_hint=(1, 1)
+            )
+        )
         self.container.add_widget(self.bottomBarContainer)
 
         self.add_widget(
@@ -159,5 +205,38 @@ class DownloadOptionsDialogue(MDDialog):
         )
         self.add_widget(self.container)
 
+        self.selectVideoQualityDialogue = SelectVideoQualityDialogue()
+        self.selectVideoQualityDialogue.bind(
+            on_confirm=lambda selectVideoQualityDialogue, videoQuality:
+                self.onVideoQualityConfirmed(selectVideoQualityDialogue, videoQuality)
+        )
+
+        self.selectAudioFormatDialogue = SelectAudioFormatDialogue()
+        self.selectAudioFormatDialogue.bind(
+            on_confirm=lambda selectAudioFormatDialogue, audioFormat:
+                self.onAudioQualityConfirmed(selectAudioFormatDialogue, audioFormat)
+        )
+
     def onDownloadTypeSelect(self, downloadType):
         print("onDownloadTypeSelect: ", downloadType)
+
+    def onFormatPreferenceChipRelease(self, formatPreferenceButtonName):
+
+        if formatPreferenceButtonName == "resolution":
+            print(formatPreferenceButtonName)
+            self.selectVideoQualityDialogue.open()
+        elif formatPreferenceButtonName == "audio":
+            print(formatPreferenceButtonName)
+            self.selectAudioFormatDialogue.open()
+        else:
+            print(formatPreferenceButtonName)
+
+    def onVideoQualityConfirmed(self, selectVideoQualityDialogue, videoQuality):
+        self.selectedOptions["videoQuality"] = videoQuality
+        selectVideoQualityDialogue.dismiss()
+        print(self.selectedOptions)
+
+    def onAudioQualityConfirmed(self, selectAudioFormatDialogue, audioFormat):
+        self.selectedOptions["audioFormat"] = audioFormat
+        selectAudioFormatDialogue.dismiss()
+        print(self.selectedOptions)
