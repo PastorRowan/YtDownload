@@ -9,6 +9,10 @@ from kivy.graphics import (
     Line
 )
 
+from kivy.metrics import dp
+
+from kivy.core.window import Window
+
 def set_rect_bg(
     widget: Widget,
     color: ColorTypes.ColorTuple
@@ -110,3 +114,37 @@ def set_border(
 
         # listen to size and position changes
         widget.bind(pos=update_border, size=update_border)
+
+def set_max_width(
+    widget,
+    reference_widget,
+    max_width,
+    margin
+):
+
+    # IMPORTANT: you take control of width
+    widget.size_hint_x = None
+
+    def update(*args):
+        widget.width = min(reference_widget.width - margin, max_width)
+
+    reference_widget.bind(size=update)
+
+    update()
+
+def set_max_height(
+    widget,
+    reference_widget,
+    max_height,
+    margin
+):
+
+    # IMPORTANT: you take control of height
+    widget.size_hint_y = None
+
+    def update(*args):
+        widget.height = min(reference_widget.height - margin, max_height)
+
+    reference_widget.bind(size=update)
+
+    update()

@@ -24,6 +24,8 @@ import yt_download
 
 import Colors
 
+import CustomGraphics
+
 Window.clearcolor = Colors.white
 
 class HomeScreen(Screen):
@@ -37,7 +39,7 @@ class HomeScreen(Screen):
             orientation="vertical",
             size_hint=(1, None),
             adaptive_height=True,
-            padding=(50, 50),
+            padding=(dp(50), dp(50)),
             md_bg_color=Colors.white
         )
 
@@ -48,6 +50,13 @@ class HomeScreen(Screen):
             title="Never going to give you up - Rick astley",
             author="Rick astley",
             pos_hint={ "center_x": 0.5, "center_y": 0.5 }
+        )
+
+        CustomGraphics.set_max_width(
+            widget=self.selectedVideoInfoCard,
+            reference_widget=Window,
+            max_width=dp(600),
+            margin=dp(100)
         )
 
         self.input = MDTextField(
