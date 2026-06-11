@@ -26,9 +26,11 @@ from kivymd.uix.chip import (
     MDChipText
 )
 
-from screens.HomeScreen.SelectVideoQualityDialogue import SelectVideoQualityDialogue
+from screens.HomeScreen.SelectVideoFormatDialogue import SelectVideoFormatDialogue
 
 from screens.HomeScreen.SelectAudioFormatDialogue import SelectAudioFormatDialogue
+
+from kivy.clock import Clock
 
 class DownloadOptionsDialogue(MDDialog):
 
@@ -74,14 +76,14 @@ class DownloadOptionsDialogue(MDDialog):
             )
         )
 
-        self.downloadTyeVBox = MDBoxLayout(
+        self.downloadTypeVBox = MDBoxLayout(
             orientation="vertical",
             size_hint=(1, None),
             spacing="12dp",
             adaptive_height=True
         )
 
-        self.downloadTyeVBox.add_widget(
+        self.downloadTypeVBox.add_widget(
             MDLabel(
                 text="Download type",
                 size_hint=(1, None),
@@ -89,7 +91,7 @@ class DownloadOptionsDialogue(MDDialog):
             )
         )
 
-        self.downloadTyeVBox.add_widget(
+        self.downloadTypeVBox.add_widget(
             MDSegmentedButton(
                 MDSegmentedButtonItem(
                     MDSegmentButtonIcon(
@@ -98,68 +100,69 @@ class DownloadOptionsDialogue(MDDialog):
                     MDSegmentButtonLabel(
                         text="Video"
                     ),
-                    on_release=lambda x: self.onDownloadTypeSelect("video")
+                    on_release=lambda x: self._onDownloadTypeSelect("video")
                 ),
                 MDSegmentedButtonItem(
                     MDSegmentButtonIcon(
-                        icon="music"
+                        icon="file-music-outline"
                     ),
                     MDSegmentButtonLabel(
                         text="Audio"
                     ),
-                    on_release=lambda x: self.onDownloadTypeSelect("audio")
+                    on_release=lambda x: self._onDownloadTypeSelect("audio")
                 )
             )
         )
 
-        self.formatPreferenceVBox = MDBoxLayout(
+        self.formatVBox = MDBoxLayout(
             orientation="vertical",
             size_hint=(1, None),
             spacing="12dp",
             adaptive_height=True
         )
 
-        self.formatPreferenceChipButtonContainer = MDBoxLayout(
+        self.formatChipButtonContainer = MDBoxLayout(
             orientation="horizontal",
-            size_hint=(1, None),
-            spacing="12dp",
+            size_hint=(None, 1),
             adaptive_height=True
         )
-        self.formatPreferenceChipButtonContainer.add_widget(
-            MDChip( 
-                MDChipLeadingIcon(
-                    icon="high-definition-box"
-                ),
-                MDChipText(
-                    text="720"
-                ),
-                type="filter",
-                on_release=lambda x: self.onFormatPreferenceChipRelease("resolution")
-            )
-        )
-        self.formatPreferenceChipButtonContainer.add_widget(
-            MDChip(
-                MDChipLeadingIcon(
-                    icon="file-music-outline"
-                ),
-                MDChipText(
-                    text="Audio format"
-                ),
-                type="filter",
-                on_release=lambda x: self.onFormatPreferenceChipRelease("audio")
-            )
+
+        self.videoFormatChipButtonContainer = MDBoxLayout(
+            orientation="horizontal",
+            size_hint=(None, None),
+            adaptive_height=True
         )
 
-        self.formatPreferenceVBox.add_widget(
+        self.videoFormatChipButton = MDChip( 
+            MDChipLeadingIcon(icon="file-video-outline"),
+            MDChipText(text="Video format"),
+            type="filter",
+            on_release=lambda x: self._onFormatChipRelease("video")
+        )
+
+        self._videoFormatChipButtonDefaultSizeHintx = self.videoFormatChipButton.size_hint_x
+        self._videoFormatChipButtonDefaultSizeHinty = self.videoFormatChipButton.size_hint_y
+
+        # self.videoFormatChipButtonContainer.add_widget(self.videoFormatChipButton)
+
+        self.audioFormatChipButton = MDChip(
+            MDChipLeadingIcon(icon="file-music-outline"),
+            MDChipText(text="Audio format"),
+            type="filter",
+            on_release=lambda x: self._onFormatChipRelease("audio")
+        )
+
+        self.formatChipButtonContainer.add_widget(self.videoFormatChipButton)
+        self.formatChipButtonContainer.add_widget(self.audioFormatChipButton)
+
+        self.formatVBox.add_widget(
             MDLabel(
                 text="Format preference",
                 size_hint=(1, None),
                 height=30
             )
         )
-        self.formatPreferenceVBox.add_widget(
-            self.formatPreferenceChipButtonContainer
-        )
+        self.formatVBox.add_widget(self.formatChipButtonContainer)
 
         self.bottomBarContainer = MDDialogButtonContainer(
             Widget(
@@ -189,8 +192,8 @@ class DownloadOptionsDialogue(MDDialog):
         )
 
         self.container.add_widget(self.fileNameFieldVBox)
-        self.container.add_widget(self.downloadTyeVBox)
-        self.container.add_widget(self.formatPreferenceVBox)
+        self.container.add_widget(self.downloadTypeVBox)
+        self.container.add_widget(self.formatVBox)
         self.container.add_widget(
             Widget(
                 size_hint=(1, 1)
@@ -205,24 +208,41 @@ class DownloadOptionsDialogue(MDDialog):
         )
         self.add_widget(self.container)
 
-        self.selectVideoFormatDialogue = SelectVideoQualityDialogue()
+        self.selectVideoFormatDialogue = SelectVideoFormatDialogue()
         self.selectVideoFormatDialogue.bind(
             on_confirm=lambda selectVideoFormatDialogue, videoFormat:
-                self.onVideoFormatConfirmed(selectVideoFormatDialogue, videoFormat)
+                self._onVideoFormatConfirmed(selectVideoFormatDialogue, videoFormat)
         )
 
         self.selectAudioFormatDialogue = SelectAudioFormatDialogue()
         self.selectAudioFormatDialogue.bind(
             on_confirm=lambda selectAudioFormatDialogue, audioFormat:
-                self.onAudioFormatConfirmed(selectAudioFormatDialogue, audioFormat)
+                self._onAudioFormatConfirmed(selectAudioFormatDialogue, audioFormat)
         )
 
-    def onDownloadTypeSelect(self, downloadType):
-        print("onDownloadTypeSelect: ", downloadType)
+    def showVideoFormatChipButton(self):
+        self.videoFormatChipButton.size_hint_x = self._videoFormatChipButtonDefaultSizeHintx
+        self.videoFormatChipButton.width = self.videoFormatChipButton.minimum_width
+        self.videoFormatChipButton.opacity = 1
+        self.videoFormatChipButton.disabled = False
 
-    def onFormatPreferenceChipRelease(self, formatPreferenceButtonName):
+    def hideVideoFormatChipButton(self):
+        self.videoFormatChipButton.size_hint_x = None
+        self.videoFormatChipButton.width = 0
+        self.videoFormatChipButton.opacity = 0
+        self.videoFormatChipButton.disabled = True
 
-        if formatPreferenceButtonName == "resolution":
+    def _onDownloadTypeSelect(self, downloadType):
+        print("_onDownloadTypeSelect: ", downloadType)
+
+        if downloadType == "video":
+            Clock.schedule_once(lambda dt: self.showVideoFormatChipButton())
+        elif downloadType == "audio":
+            Clock.schedule_once(lambda dt: self.hideVideoFormatChipButton())
+
+    def _onFormatChipRelease(self, formatPreferenceButtonName):
+
+        if formatPreferenceButtonName == "video":
             self.selectVideoFormatDialogue.open()
         elif formatPreferenceButtonName == "audio":
             self.selectAudioFormatDialogue.open()
@@ -231,12 +251,12 @@ class DownloadOptionsDialogue(MDDialog):
 
         print(formatPreferenceButtonName)
 
-    def onVideoFormatConfirmed(self, selectVideoFormatDialogue, videoFormat):
+    def _onVideoFormatConfirmed(self, selectVideoFormatDialogue, videoFormat):
         self.selectedOptions["videoFormat"] = videoFormat
         selectVideoFormatDialogue.dismiss()
         print(self.selectedOptions)
 
-    def onAudioFormatConfirmed(self, selectAudioFormatDialogue, audioFormat):
+    def _onAudioFormatConfirmed(self, selectAudioFormatDialogue, audioFormat):
         self.selectedOptions["audioFormat"] = audioFormat
         selectAudioFormatDialogue.dismiss()
         print(self.selectedOptions)

@@ -24,7 +24,7 @@ from kivymd.uix.menu import MDDropdownMenu
 
 from kivy.clock import Clock
 
-class SelectAudioFormatDialogue(MDDialog):
+class SelectVideoFormatDialogue(MDDialog):
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -32,67 +32,70 @@ class SelectAudioFormatDialogue(MDDialog):
             **kwargs
         )
 
-        self.audioFormat = {
-            "fileFormat": "OPUS",
-            "quality": "192 Kbps"
+        self.videoFormat = {
+            "fileFormat": "MP4",
+            "quality": "720p"
         }
 
-        self.audioFileFormatDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.audioFormat["fileFormat"]
+        self.videoFileFormatDropDownMenuButtonText = MDListItemSupportingText(
+            text=self.videoFormat["fileFormat"]
         )
 
-        self.audioFileFormatDropDownMenuButton = MDListItem(
+        self.videoFileFormatDropDownMenuButton = MDListItem(
             MDListItemLeadingIcon(
-                icon="file-music-outline"
+                icon="file-video-outline"
             ),
-            self.audioFileFormatDropDownMenuButtonText,
+            self.videoFileFormatDropDownMenuButtonText,
             MDListItemTrailingIcon(
-                icon="file-music-outline"
+                icon="file-video-outline"
             ),
             size_hint=(1, None),
-            on_release=lambda *_: self._onAudioFileFormatDropDownMenuButtonRelease()
+            on_release=lambda *_: self._onVideoFileFormatDropDownMenuButtonRelease()
         )
 
-        self.audioFileFormatDropDownMenuItems = [
-            self._makeDropDownMenuItem("fileFormat", "OPUS"),
-            self._makeDropDownMenuItem("fileFormat", "M4A")
+        self.videoFileFormatDropDownMenuItems = [
+            self._makeDropDownMenuItem("fileFormat", "MP4"),
+            self._makeDropDownMenuItem("fileFormat", "WEBM")
         ]
 
-        self.audioFileFormatDropDownMenu = MDDropdownMenu(
-            caller=self.audioFileFormatDropDownMenuButton, # the widget that opens it
-            items=self.audioFileFormatDropDownMenuItems,
+        self.videoFileFormatDropDownMenu = MDDropdownMenu(
+            caller=self.videoFileFormatDropDownMenuButton, # the widget that opens it
+            items=self.videoFileFormatDropDownMenuItems,
             position="bottom",
             hor_growth="right",
             ver_growth="down"
         )
 
-        self.audioQualityDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.audioFormat["quality"]
+        self.videoQualityDropDownMenuButtonText = MDListItemSupportingText(
+            text=self.videoFormat["quality"]
         )
 
-        self.audioQualityDropDownMenuButton = MDListItem(
+        self.videoQualityDropDownMenuButton = MDListItem(
             MDListItemLeadingIcon(
                 icon="high-definition-box"
             ),
-            self.audioQualityDropDownMenuButtonText,
+            self.videoQualityDropDownMenuButtonText,
             MDListItemTrailingIcon(
                 icon="high-definition-box"
             ),
             size_hint=(1, None),
-            on_release=lambda *_: self._onAudioQualityDropDownMenuButtonRelease()
+            on_release=lambda *_: self._onVideoQualityDropDownMenuButtonRelease()
         )
 
-        self.audioQualityDropDownMenuItems = [
-            self._makeDropDownMenuItem("quality", "Unlimited"),
-            self._makeDropDownMenuItem("quality", "192 Kbps"),
-            self._makeDropDownMenuItem("quality", "128 Kbps"),
-            self._makeDropDownMenuItem("quality", "64 Kbps"),
-            self._makeDropDownMenuItem("quality", "32 Kbps")
+        self.videoQualityDropDownMenuItems = [
+            self._makeDropDownMenuItem("quality", "Best quality"),
+            self._makeDropDownMenuItem("quality", "2160p"),
+            self._makeDropDownMenuItem("quality", "1440p"),
+            self._makeDropDownMenuItem("quality", "1080p"),
+            self._makeDropDownMenuItem("quality", "720p"),
+            self._makeDropDownMenuItem("quality", "480p"),
+            self._makeDropDownMenuItem("quality", "360p"),
+            self._makeDropDownMenuItem("quality", "Lowest quality")
         ]
 
-        self.audioQualityDropDownMenu = MDDropdownMenu(
-            caller=self.audioQualityDropDownMenuButton, # the widget that opens it
-            items=self.audioQualityDropDownMenuItems,
+        self.videoQualityDropDownMenu = MDDropdownMenu(
+            caller=self.videoQualityDropDownMenuButton, # the widget that opens it
+            items=self.videoQualityDropDownMenuItems,
             position="bottom",
             hor_growth="right",
             ver_growth="down"
@@ -100,12 +103,12 @@ class SelectAudioFormatDialogue(MDDialog):
 
         self.add_widget(
             MDDialogIcon(
-                icon="file-music-outline"
+                icon="file-video-outline"
             )
         )
         self.add_widget(
             MDDialogHeadlineText(
-                text="Audio format"
+                text="Video format"
             )
         )
 
@@ -113,11 +116,11 @@ class SelectAudioFormatDialogue(MDDialog):
 
             MDDialogContentContainer(
             
-                MDLabel(text="Audio file format"),
-                self.audioFileFormatDropDownMenuButton,
+                MDLabel(text="Video file format"),
+                self.videoFileFormatDropDownMenuButton,
 
-                MDLabel(text="Audio quality"),
-                self.audioQualityDropDownMenuButton,
+                MDLabel(text="Video quality"),
+                self.videoQualityDropDownMenuButton,
 
                 MDDialogButtonContainer(
                     Widget(
@@ -152,20 +155,20 @@ class SelectAudioFormatDialogue(MDDialog):
 
         self.register_event_type("on_confirm")
 
-    def setAudioFormat(self, key, value):
-        self.audioFormat[key] = value
-        print(self.audioFormat)
+    def setVideoFormat(self, key, value):
+        self.videoFormat[key] = value
+        print(self.videoFormat)
 
     def selectItem(self, key, value):
 
-        self.setAudioFormat(key, value)
+        self.setVideoFormat(key, value)
 
         if key == "fileFormat":
-            self.audioFileFormatDropDownMenuButtonText.text = value
-            self.audioFileFormatDropDownMenu.dismiss()
+            self.videoFileFormatDropDownMenuButtonText.text = value
+            self.videoFileFormatDropDownMenu.dismiss()
         elif key == "quality":
-            self.audioQualityDropDownMenuButtonText.text = value
-            self.audioQualityDropDownMenu.dismiss()
+            self.videoQualityDropDownMenuButtonText.text = value
+            self.videoQualityDropDownMenu.dismiss()
         else:
             raise Exception(f"Error: key '{key}' is invalid")
 
@@ -177,10 +180,10 @@ class SelectAudioFormatDialogue(MDDialog):
             "on_release": lambda *_: self.selectItem(key, value)
         }
 
-    def _onAudioFileFormatDropDownMenuButtonRelease(self):
+    def _onVideoFileFormatDropDownMenuButtonRelease(self):
 
-        menu = self.audioFileFormatDropDownMenu
-        caller = self.audioFileFormatDropDownMenuButton
+        menu = self.videoFileFormatDropDownMenu
+        caller = self.videoFileFormatDropDownMenuButton
 
         def openMenu(*_):
             menu.open()
@@ -191,10 +194,10 @@ class SelectAudioFormatDialogue(MDDialog):
 
         Clock.schedule_once(openMenu)
 
-    def _onAudioQualityDropDownMenuButtonRelease(self):
+    def _onVideoQualityDropDownMenuButtonRelease(self):
 
-        menu = self.audioQualityDropDownMenu
-        caller = self.audioQualityDropDownMenuButton
+        menu = self.videoQualityDropDownMenu
+        caller = self.videoQualityDropDownMenuButton
 
         def openMenu(*_):
             menu.open()
@@ -216,5 +219,5 @@ class SelectAudioFormatDialogue(MDDialog):
 
         self.dispatch(
             "on_confirm",
-            self.audioFormat
+            self.videoFormat
         )

@@ -1,6 +1,7 @@
 
 from kivy.uix.screenmanager import Screen
 
+from kivy.uix.scrollview import ScrollView
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.widget import Widget
 from kivymd.uix.textfield import MDTextField
@@ -10,29 +11,44 @@ from kivymd.icon_definitions import md_icons
 
 from kivy.core.window import Window
 
+from screens.HomeScreen.VideoInfoCard import VideoInfoCard
 from screens.HomeScreen.TopBarHBoxLayout import TopBarHBoxLayout
 from screens.HomeScreen.ErrorCard import ErrorCard
 from screens.HomeScreen.DownloadOptionsDialogue import DownloadOptionsDialogue
 
-import Colors
+from kivy.clock import Clock
+from kivy.metrics import dp
 
 from threading import Thread
-from kivy.clock import Clock
 import yt_download
+
+import Colors
+
+Window.clearcolor = Colors.white
 
 class HomeScreen(Screen):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self.scroll = ScrollView()
+
         self.rootVBoxLayout = MDBoxLayout(
             orientation="vertical",
-            size_hint=(1, 1),
+            size_hint=(1, None),
+            adaptive_height=True,
             padding=(50, 50),
             md_bg_color=Colors.white
         )
 
         self.topBarHBoxLayout = TopBarHBoxLayout()
+
+        self.selectedVideoInfoCard = VideoInfoCard(
+            thumbnailLink="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+            title="Never going to give you up - Rick astley",
+            author="Rick astley",
+            pos_hint={ "center_x": 0.5, "center_y": 0.5 }
+        )
 
         self.input = MDTextField(
             size_hint=(1, None),
@@ -55,31 +71,36 @@ class HomeScreen(Screen):
         )
 
         self.rootVBoxLayout.add_widget(self.topBarHBoxLayout)
+        self.rootVBoxLayout.add_widget(self.selectedVideoInfoCard)
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
-                height=125
+                height=dp(50)
             )
         )
         self.rootVBoxLayout.add_widget(self.input)
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
-                height=40
+                height=dp(50)
             )
         )
         self.rootVBoxLayout.add_widget(self.errorCard)
+        
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, 1),
             )
         )
+        
 
         self.rootVBoxLayout.add_widget(self.downloadPromptButton)
 
         self.downloadOptionsDialogue = DownloadOptionsDialogue()
 
-        self.add_widget(self.rootVBoxLayout)
+        self.scroll.add_widget(self.rootVBoxLayout)
+
+        self.add_widget(self.scroll)
 
         self.fetchVideoInfoThead = None
 
