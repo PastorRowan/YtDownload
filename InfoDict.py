@@ -9,7 +9,6 @@ from typing import (
     Literal,
     Set
 )
-from datetime import datetime
 
 class Fragment(TypedDict, total=False):
     """Fragment of a fragmented media."""
@@ -296,23 +295,27 @@ class InfoDict(TypedDict, total=False):
     _format_sort_fields: Optional[List[str]]  # Fields for sorting formats
     __post_extractor: Optional[Any]   # Function to call after extraction
 
-
 def getAvailableVideoExts(infoDict: InfoDict) -> List[str]:
+
+    ALLOWED_VIDEO_EXTS: list[str] = [
+        "mp4",
+        "webm"
+    ]
 
     formats = infoDict.get("formats") or []
 
     exts: Set[str] = set()
 
     for f in formats:
-        ext = f.get("ext")
-        if ext:
-            exts.add(ext)
+        ext: str = f.get("ext")
+        if ext in ALLOWED_VIDEO_EXTS:
+            exts.add(str(ext))
 
     return sorted(exts)
 
-def getAvailableVideoHeights(infoDict: InfoDict) -> List[int]:
+def getAvailableVideoHeights(infoDict: InfoDict) -> List[str]:
 
-    ALLOWED_VIDEO_HEIGHTS = [
+    ALLOWED_VIDEO_HEIGHTS: list[int] = [
         3840,
         1440,
         1080,
@@ -326,13 +329,23 @@ def getAvailableVideoHeights(infoDict: InfoDict) -> List[int]:
     heights: Set[int] = set()
 
     for f in formats:
-        height = f.get("height")
+        height: int = f.get("height")
         if height in ALLOWED_VIDEO_HEIGHTS:
-            heights.add(height)
+            heights.add(str(height))
 
-    return sorted(heights, reverse=True)
+    sortedHeights: list[int] = sorted(heights)
+
+    sortedStrHeights: list[str] = [str(h) for h in sortedHeights]
+
+    return sortedStrHeights
 
 def getAvailableAudioExts(infoDict: InfoDict) -> List[str]:
+
+    ALLOWED_AUDIO_EXTS: list[str] = [
+        "m4a",
+        "webm",
+        "opus"
+    ]
 
     formats = infoDict.get("formats") or []
 
@@ -340,15 +353,15 @@ def getAvailableAudioExts(infoDict: InfoDict) -> List[str]:
 
     for f in formats:
         if f.get("acodec") not in (None, "none"):
-            ext = f.get("ext")
-            if ext:
-                exts.add(ext)
+            ext: str = f.get("ext")
+            if ext in ALLOWED_AUDIO_EXTS:
+                exts.add(str(ext))
 
     return sorted(exts)
 
-def getAvailableAudioExts(infoDict: InfoDict):
+def getAvailableAudioAbrs(infoDict: InfoDict) -> list[str]:
 
-    ALLOWED_ABRS = [
+    ALLOWED_ABRS: list[float] = [
         153.038,
         129.568,
         59.571,
@@ -360,8 +373,12 @@ def getAvailableAudioExts(infoDict: InfoDict):
     abr_set: Set[float] = set()
 
     for f in formats:
-        abr = f.get("abr")
-        if abr and abr in ALLOWED_ABRS:
+        abr: float = f.get("abr")
+        if abr in ALLOWED_ABRS:
             abr_set.add(abr)
 
-    return sorted(abr_set, reverse=True)
+    sortedAbrs: list[float] = sorted(abr_set)
+
+    sortedStrAbrs: list[str] = [str(a) for a in sortedAbrs]
+
+    return sortedStrAbrs

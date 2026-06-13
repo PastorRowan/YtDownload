@@ -1,4 +1,17 @@
 
+from typing import (
+    TypedDict,
+    Optional,
+    List,
+    Union,
+    Dict,
+    Any,
+    Literal,
+    Set,
+    Callable,
+    Any
+)
+
 from kivymd.uix.dialog import (
     MDDialog,
     MDDialogHeadlineText,
@@ -28,13 +41,19 @@ from kivy.properties import (
     ListProperty
 )
 
+class DropDownMenuItem(TypedDict):
+    text: str
+    on_release: Callable[[], None]
+
 class SelectVideoFormatDialogue(MDDialog):
 
-    videoExts = ListProperty([])
-    selectedVideoExt = StringProperty("")
+    videoExts: list[str] = ListProperty([])
+    selectedVideoExt: str = StringProperty("-")
+    _videoExtDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
-    videoHeights = ListProperty([])
-    selectedVideoHeight = StringProperty("")
+    videoHeights: list[str] = ListProperty([])
+    selectedVideoHeight: str = StringProperty("-")
+    _videoHeightDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -44,6 +63,13 @@ class SelectVideoFormatDialogue(MDDialog):
 
         self.videoExtDropDownMenuButtonText = MDListItemSupportingText(
             text=self.selectedVideoExt
+        )
+        self.bind(
+            selectedVideoExt=lambda instance, value: setattr(
+                self.videoExtDropDownMenuButtonText,
+                "text",
+                value
+            )
         )
 
         self.videoExtDropDownMenuButton = MDListItem(
@@ -58,20 +84,9 @@ class SelectVideoFormatDialogue(MDDialog):
             on_release=lambda dt: self._onVideoExtDropDownMenuButtonRelease()
         )
 
-        self.videoExtDropDownMenuItems = []
-
-        def _selectVideoExt(videoExt):
-            self.selectedVideoExt = videoExt
-
-        for videoExt in self.videoExts:
-            self.videoExtDropDownMenuItems.append({
-                "text": videoExt,
-                "on_release": lambda dt: _selectVideoExt(videoExt)
-            })
-
         self.videoExtDropDownMenu = MDDropdownMenu(
             caller=self.videoExtDropDownMenuButton, # the widget that opens it
-            items=self.videoExtDropDownMenuItems,
+            items=self._videoExtDropDownMenuItems,
             position="bottom",
             hor_growth="right",
             ver_growth="down"
@@ -79,6 +94,13 @@ class SelectVideoFormatDialogue(MDDialog):
 
         self.videoHeightDropDownMenuButtonText = MDListItemSupportingText(
             text=self.selectedVideoHeight
+        )
+        self.bind(
+            selectedVideoHeight=lambda instance, value: setattr(
+                self.videoHeightDropDownMenuButtonText,
+                "text",
+                value + "p"
+            )
         )
 
         self.videoHeightDropDownMenuButton = MDListItem(
@@ -93,21 +115,9 @@ class SelectVideoFormatDialogue(MDDialog):
             on_release=lambda dt: self._onVideoHeightDropDownMenuButtonRelease()
         )
 
-
-        self.videoHeightDropDownMenuItems = []
-
-        def _selectVideoHeight(videoHeight):
-            self.selectedVideoHeight = videoHeight
-
-        for videoHeight in self.videoHeights:
-            self.videoHeightDropDownMenuItems.append({
-                "text": videoHeight,
-                "on_release": lambda dt: _selectVideoHeight(videoHeight)
-            })
-
         self.videoHeightDropDownMenu = MDDropdownMenu(
             caller=self.videoHeightDropDownMenuButton, # the widget that opens it
-            items=self.videoHeightDropDownMenuItems,
+            items=self._videoHeightDropDownMenuItems,
             position="bottom",
             hor_growth="right",
             ver_growth="down"
@@ -166,6 +176,46 @@ class SelectVideoFormatDialogue(MDDialog):
         )
 
         self.register_event_type("on_confirm")
+
+        self.bind(
+            videoExts=lambda instance, value: self._onVideoExts(instance, value)
+        )
+
+        self.bind(
+            videoHeights=lambda instance, value: self._onVideoHeights(instance, value)
+        )
+
+    def _onVideoExts(self, instance, value):
+
+        videoExtDropDownMenu = self.videoExtDropDownMenu
+
+        self._videoExtDropDownMenuItems.clear()
+
+        def _selectVideoExt(videoExt: str) -> None:
+            self.selectedVideoExt = videoExt
+            videoExtDropDownMenu.dismiss()
+
+        for videoExt in self.videoExts:
+            self._videoExtDropDownMenuItems.append({
+                "text": videoExt,
+                "on_release": lambda x=videoExt: _selectVideoExt(x)
+            })
+
+    def _onVideoHeights(self, instance, value):
+
+        videoHeightDropDownMenu = self.videoHeightDropDownMenu
+
+        self._videoHeightDropDownMenuItems.clear()
+
+        def _selectVideoHeight(videoHeight: str) -> None:
+            self.selectedVideoHeight = videoHeight
+            videoHeightDropDownMenu.dismiss()
+
+        for videoHeight in self.videoHeights:
+            self._videoHeightDropDownMenuItems.append({
+                "text": videoHeight + "p",
+                "on_release": lambda x=videoHeight: _selectVideoHeight(x)
+            })
 
     def _onVideoExtDropDownMenuButtonRelease(self):
 

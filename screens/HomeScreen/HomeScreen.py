@@ -14,7 +14,10 @@ from kivy.core.window import Window
 from screens.HomeScreen.VideoInfoCard import VideoInfoCard
 from screens.HomeScreen.TopBarHBoxLayout import TopBarHBoxLayout
 from screens.HomeScreen.ErrorCard import ErrorCard
-from screens.HomeScreen.DownloadOptionsDialogue import DownloadOptionsDialogue
+from screens.HomeScreen.DownloadOptionsDialogue import (
+    DownloadOptionsDialogue,
+    SelectedFormats
+)
 
 from kivy.clock import Clock
 from kivy.metrics import dp
@@ -40,6 +43,8 @@ from kivy.properties import (
     StringProperty,
     ObjectProperty
 )
+
+from pprint import pprint
 
 class HomeScreen(Screen):
 
@@ -113,6 +118,10 @@ class HomeScreen(Screen):
 
         self.downloadOptionsDialogue = DownloadOptionsDialogue()
 
+        self.downloadOptionsDialogue.bind(
+            on_confirm=self._onDownloadOptionsDialogueConfirm
+        )
+
         self.scroll.add_widget(self.rootVBoxLayout)
 
         self.add_widget(self.scroll)
@@ -143,26 +152,26 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
 
         if extractInfoResult["ok"]:
             Clock.schedule_once(
-                lambda dt: self.successFetchVideoInfo(extractInfoResult["video_info"])
+                lambda dt: self._successFetchVideoInfo(extractInfoResult["video_info"])
             )
         else:
             Clock.schedule_once(
-                lambda dt: self.failFetchVideoInfo(extractInfoResult["error_msg"])
+                lambda dt: self._failFetchVideoInfo(extractInfoResult["error_msg"])
             )
 
         Clock.schedule_once(
-            lambda dt: self.finishFetchVideoInfo()
+            lambda dt: self._finishFetchVideoInfo()
         )
 
-    def successFetchVideoInfo(self, videoInfo: InfoDict.InfoDict):
+    def _successFetchVideoInfo(self, videoInfo: InfoDict.InfoDict):
 
         self.errorCard.show = False
 
         self.downloadOptionsDialogue.availableVideoExts = InfoDict.getAvailableVideoExts(videoInfo)
-        self.downloadOptionsDialogue.availableVideoHeights = InfoDict.getAvailableVideoExts(videoInfo)
+        self.downloadOptionsDialogue.availableVideoHeights = InfoDict.getAvailableVideoHeights(videoInfo)
 
         self.downloadOptionsDialogue.availableAudioExts = InfoDict.getAvailableAudioExts(videoInfo)
-        self.downloadOptionsDialogue.availableAbrs = InfoDict.getAvailableAudioExts(videoInfo)
+        self.downloadOptionsDialogue.availableAbrs = InfoDict.getAvailableAudioAbrs(videoInfo)
 
         self.selectedVideoInfoCard.thumbnailLink = videoInfo["thumbnail"]
         self.selectedVideoInfoCard.title = videoInfo["title"]
@@ -171,11 +180,11 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
 
         self.downloadOptionsDialogue.open()
 
-    def failFetchVideoInfo(self, message):
+    def _failFetchVideoInfo(self, message):
         self.errorCard.body = message
         self.errorCard.show = True
 
-    def finishFetchVideoInfo(self):
+    def _finishFetchVideoInfo(self):
 
         # self.downloadOptionsDialogue.open()
 
@@ -185,3 +194,10 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
             2
         )
         """
+    
+    def _onDownloadOptionsDialogueConfirm(
+        self,
+        selectedFormats: SelectedFormats
+    ):
+        print("_onDownloadOptionsDialogueConfirm called: here is the selected formats")
+        pprint(selectedFormats)

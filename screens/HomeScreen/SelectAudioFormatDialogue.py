@@ -1,4 +1,17 @@
 
+from typing import (
+    TypedDict,
+    Optional,
+    List,
+    Union,
+    Dict,
+    Any,
+    Literal,
+    Set,
+    Callable,
+    Any
+)
+
 from kivymd.uix.dialog import (
     MDDialog,
     MDDialogHeadlineText,
@@ -30,13 +43,19 @@ from kivy.properties import (
     ListProperty
 )
 
+class DropDownMenuItem(TypedDict):
+    text: str
+    on_release: Callable[[], None]
+
 class SelectAudioFormatDialogue(MDDialog):
 
-    audioExts = ListProperty([])
-    selectedAudioExt = StringProperty("")
+    audioExts: list[str] = ListProperty([])
+    selectedAudioExt: str = StringProperty("-")
+    _audioExtDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
-    audioAbrs = ListProperty([])
-    selectedAudioAbr = StringProperty("")
+    audioAbrs: list[str] = ListProperty([])
+    selectedAudioAbr: str = StringProperty("-")
+    _audioAbrDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -46,6 +65,13 @@ class SelectAudioFormatDialogue(MDDialog):
 
         self.audioExtDropDownMenuButtonText = MDListItemSupportingText(
             text=self.selectedAudioExt
+        )
+        self.bind(
+            selectedAudioExt=lambda instance, value: setattr(
+                self.audioExtDropDownMenuButtonText,
+                "text",
+                value
+            )
         )
 
         self.audioExtDropDownMenuButton = MDListItem(
@@ -60,20 +86,9 @@ class SelectAudioFormatDialogue(MDDialog):
             on_release=lambda dt: self._onAudioExtDropDownMenuButtonRelease()
         )
 
-        self.audioExtDropDownMenuItems = []
-
-        def _selectAudioExt(audioExt):
-            self.selectedAudioExt = audioExt
-
-        for audioExt in self.audioExts:
-            self.audioExtDropDownMenuItems.append({
-                "text": audioExt,
-                "on_release": lambda dt: _selectAudioExt(audioExt)
-            })
-
         self.audioExtDropDownMenu = MDDropdownMenu(
             caller=self.audioExtDropDownMenuButton, # the widget that opens it
-            items=self.audioExtDropDownMenuItems,
+            items=self._audioExtDropDownMenuItems,
             position="bottom",
             hor_growth="right",
             ver_growth="down"
@@ -81,6 +96,13 @@ class SelectAudioFormatDialogue(MDDialog):
 
         self.audioAbrDropDownMenuButtonText = MDListItemSupportingText(
             text=self.selectedAudioAbr
+        )
+        self.bind(
+            selectedAudioAbr=lambda instance, value: setattr(
+                self.audioAbrDropDownMenuButtonText,
+                "text",
+                value + "kbps"
+            )
         )
 
         self.audioAbrDropDownMenuButton = MDListItem(
@@ -95,21 +117,9 @@ class SelectAudioFormatDialogue(MDDialog):
             on_release=lambda dt: self._onAudioAbrDropDownMenuButtonRelease()
         )
 
-
-        self.audioAbrDropDownMenuItems = []
-
-        def _selectAudioAbr(audioAbr):
-            self.selectedAudioAbr = audioAbr
-
-        for audioAbr in self.audioAbrs:
-            self.audioAbrDropDownMenuItems.append({
-                "text": audioAbr,
-                "on_release": lambda dt: _selectAudioAbr(audioAbr)
-            })
-
         self.audioAbrDropDownMenu = MDDropdownMenu(
             caller=self.audioAbrDropDownMenuButton, # the widget that opens it
-            items=self.audioAbrDropDownMenuItems,
+            items=self._audioAbrDropDownMenuItems,
             position="bottom",
             hor_growth="right",
             ver_growth="down"
@@ -168,6 +178,46 @@ class SelectAudioFormatDialogue(MDDialog):
         )
 
         self.register_event_type("on_confirm")
+
+        self.bind(
+            audioExts=lambda instance, value: self._onAudioExts(instance, value)
+        )
+
+        self.bind(
+            audioAbrs=lambda instance, value: self._onAudioAbrs(instance, value)
+        )
+
+    def _onAudioExts(self, instance, value):
+
+        audioExtDropDownMenu = self.audioExtDropDownMenu
+
+        self._audioExtDropDownMenuItems.clear()
+
+        def _selectAudioExt(audioExt: str) -> None:
+            self.selectedAudioExt = audioExt
+            audioExtDropDownMenu.dismiss()
+
+        for audioExt in self.audioExts:
+            self._audioExtDropDownMenuItems.append({
+                "text": audioExt,
+                "on_release": lambda x=audioExt: _selectAudioExt(x)
+            })
+
+    def _onAudioAbrs(self, instance, value):
+
+        audioAbrDropDownMenu = self.audioAbrDropDownMenu
+
+        self._audioAbrDropDownMenuItems.clear()
+
+        def _selectAudioAbr(audioAbr: str) -> None:
+            self.selectedAudioAbr = audioAbr
+            audioAbrDropDownMenu.dismiss()
+
+        for audioAbr in self.audioAbrs:
+            self._audioAbrDropDownMenuItems.append({
+                "text": audioAbr + "kbps",
+                "on_release": lambda x=audioAbr: _selectAudioAbr(x)
+            })
 
     def _onAudioExtDropDownMenuButtonRelease(self):
 

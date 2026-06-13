@@ -1,4 +1,15 @@
 
+from typing import (
+    TypedDict,
+    Optional,
+    List,
+    Union,
+    Dict,
+    Any,
+    Literal,
+    Set
+)
+
 from kivymd.uix.dialog import (
     MDDialog,
     MDDialogHeadlineText,
@@ -43,16 +54,34 @@ from DownloadQueue import (
     DownloadQueue
 )
 
+class VideoFormat(TypedDict):
+    ext: str
+    height: int
+
+class AudioFormat(TypedDict):
+    ext: str
+    abr: int
+
+class SelectedFormats(TypedDict):
+    selectedVideoFormat: VideoFormat
+    selectedAudioFormat: AudioFormat
+
 class DownloadOptionsDialogue(MDDialog):
 
-    fileName = StringProperty("")
-    downloadType = StringProperty("")
+    fileName: str = StringProperty("")
+    downloadType: str = StringProperty("")
 
-    availableVideoExts = ListProperty([])
-    availableVideoHeights = ListProperty([])
+    availableVideoExts: list[str] = ListProperty([])
+    selectedVideoExt: str = StringProperty("-")
 
-    availableAudioExts = ListProperty([])
-    availableAbrs = ListProperty([])
+    availableVideoHeights: list[str] = ListProperty([])
+    selectedVideoHeight: str = StringProperty("-")
+
+    availableAudioExts: list[str] = ListProperty([])
+    selectedAudioExt: str = StringProperty("-")
+
+    availableAbrs: list[str] = ListProperty([])
+    selectedAudioAbr: str = StringProperty("-")
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -113,7 +142,7 @@ class DownloadOptionsDialogue(MDDialog):
                     MDSegmentButtonLabel(
                         text="Video"
                     ),
-                    on_release=lambda dt: self.setDownloadType("video")
+                    on_release=lambda dt: self._onVideoDownloadTypeChipRelease()
                 ),
                 MDSegmentedButtonItem(
                     MDSegmentButtonIcon(
@@ -122,7 +151,7 @@ class DownloadOptionsDialogue(MDDialog):
                     MDSegmentButtonLabel(
                         text="Audio"
                     ),
-                    on_release=lambda dt: self.setDownloadType("audio")
+                    on_release=lambda dt: self._onAudioDownloadTypeChipRelease()
                 )
             )
         )
@@ -198,7 +227,7 @@ class DownloadOptionsDialogue(MDDialog):
                     text="Download"
                 ),
                 style="filled",
-                on_release=lambda dt: self._onDownloadOptionsConfirmed()
+                on_release=lambda dt: self._on_download_options_confirmed()
             ),
             spacing="8dp"
         )
@@ -221,8 +250,13 @@ class DownloadOptionsDialogue(MDDialog):
         self.add_widget(self.container)
 
         self.selectVideoFormatDialogue = SelectVideoFormatDialogue(
+
             videoExts=self.availableVideoExts,
-            videoHeights=self.availableVideoHeights
+            selectedVideoExt=self.selectedVideoExt,
+
+            videoHeights=self.availableVideoHeights,
+            selectedVideoHeight=self.selectedVideoHeight
+
         )
         self.selectVideoFormatDialogue.bind(
             on_confirm=lambda selectVideoFormatDialogue, videoFormat:
@@ -230,28 +264,55 @@ class DownloadOptionsDialogue(MDDialog):
         )
 
         self.selectAudioFormatDialogue = SelectAudioFormatDialogue(
+
             audioExts=self.availableAudioExts,
-            audioAbrs=self.availableAbrs
+            selectedAudioExt=self.selectedAudioExt,
+
+            audioAbrs=self.availableAbrs,
+            selectedAudioAbr=self.selectedAudioAbr
+
         )
         self.selectAudioFormatDialogue.bind(
             on_confirm=lambda selectAudioFormatDialogue, audioFormat:
                 self._onAudioFormatConfirmed(selectAudioFormatDialogue)
         )
 
-    def showVideoFormatChipButton(self):
+        self.register_event_type("on_confirm")
+
+        self.bind(
+            downloadType=self._onDownloadType
+        )
+
+    def _showVideoFormatChipButton(self):
         self.videoFormatChipButton.size_hint_x = self._videoFormatChipButtonDefaultSizeHintx
         self.videoFormatChipButton.width = self.videoFormatChipButton.minimum_width
         self.videoFormatChipButton.opacity = 1
         self.videoFormatChipButton.disabled = False
 
-    def hideVideoFormatChipButton(self):
+    def _hideVideoFormatChipButton(self):
         self.videoFormatChipButton.size_hint_x = None
         self.videoFormatChipButton.width = 0
         self.videoFormatChipButton.opacity = 0
         self.videoFormatChipButton.disabled = True
 
-    def setDownloadType(self, downloadType: str) -> None:
-        self.downloadType = downloadType
+    def _onDownloadType(self, instance, value):
+        if value == "video":
+            self._showVideoFormatChipButton()
+        elif value == "audio":
+            self._hideVideoFormatChipButton()
+        else:
+            raise ValueError(f"value '{value}' is invalid")
+
+    def _onVideoDownloadTypeChipRelease(self):
+        print("_onVideoDownloadTypeChipRelease")
+        print(self.availableVideoExts)
+        print(self.availableVideoHeights)
+        print(self.availableAudioExts)
+        print(self.availableAbrs)
+        self.downloadType = "video"
+
+    def _onAudioDownloadTypeChipRelease(self):
+        self.downloadType = "audio"
 
     def _onVideoFormatChipRelease(self):
         self.selectVideoFormatDialogue.open()
@@ -271,7 +332,25 @@ class DownloadOptionsDialogue(MDDialog):
     ):
         selectAudioFormatDialogue.dismiss()
 
-    def _onDownloadOptionsConfirmed(
-        self
-    ):
+    def _on_download_options_confirmed(self):
         print("_onDownloadOptionsConfirmed: created download job and added it to download queue")
+
+        selectedFormats: SelectedFormats = {
+            "selectedVideoFormat": {
+                "ext": self.selectVideoFormatDialogue.selectedVideoExt,
+                "height": self.selectVideoFormatDialogue.selectedVideoHeight
+            },
+            "selectedAudioFormat": {
+                "ext": self.selectAudioFormatDialogue.selectedAudioExt,
+                "abr": self.selectAudioFormatDialogue.selectedAudioAbr
+            }
+        }
+
+        self.dispatch("on_confirm", selectedFormats)
+
+    def on_confirm(self):
+        """
+        Default handler required by Kivy.
+        Override or bind to this event externally.
+        """
+        pass
