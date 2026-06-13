@@ -23,8 +23,18 @@ from kivymd.uix.list import (
 from kivymd.uix.menu import MDDropdownMenu
 
 from kivy.clock import Clock
+from kivy.properties import (
+    StringProperty,
+    ListProperty
+)
 
 class SelectVideoFormatDialogue(MDDialog):
+
+    videoExts = ListProperty([])
+    selectedVideoExt = StringProperty("")
+
+    videoHeights = ListProperty([])
+    selectedVideoHeight = StringProperty("")
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -32,70 +42,72 @@ class SelectVideoFormatDialogue(MDDialog):
             **kwargs
         )
 
-        self.videoFormat = {
-            "fileFormat": "MP4",
-            "quality": "720p"
-        }
-
-        self.videoFileFormatDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.videoFormat["fileFormat"]
+        self.videoExtDropDownMenuButtonText = MDListItemSupportingText(
+            text=self.selectedVideoExt
         )
 
-        self.videoFileFormatDropDownMenuButton = MDListItem(
+        self.videoExtDropDownMenuButton = MDListItem(
             MDListItemLeadingIcon(
                 icon="file-video-outline"
             ),
-            self.videoFileFormatDropDownMenuButtonText,
+            self.videoExtDropDownMenuButtonText,
             MDListItemTrailingIcon(
                 icon="file-video-outline"
             ),
             size_hint=(1, None),
-            on_release=lambda *_: self._onVideoFileFormatDropDownMenuButtonRelease()
+            on_release=lambda dt: self._onVideoExtDropDownMenuButtonRelease()
         )
 
-        self.videoFileFormatDropDownMenuItems = [
-            self._makeDropDownMenuItem("fileFormat", "MP4"),
-            self._makeDropDownMenuItem("fileFormat", "WEBM")
-        ]
+        self.videoExtDropDownMenuItems = []
 
-        self.videoFileFormatDropDownMenu = MDDropdownMenu(
-            caller=self.videoFileFormatDropDownMenuButton, # the widget that opens it
-            items=self.videoFileFormatDropDownMenuItems,
+        def _selectVideoExt(videoExt):
+            self.selectedVideoExt = videoExt
+
+        for videoExt in self.videoExts:
+            self.videoExtDropDownMenuItems.append({
+                "text": videoExt,
+                "on_release": lambda dt: _selectVideoExt(videoExt)
+            })
+
+        self.videoExtDropDownMenu = MDDropdownMenu(
+            caller=self.videoExtDropDownMenuButton, # the widget that opens it
+            items=self.videoExtDropDownMenuItems,
             position="bottom",
             hor_growth="right",
             ver_growth="down"
         )
 
-        self.videoQualityDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.videoFormat["quality"]
+        self.videoHeightDropDownMenuButtonText = MDListItemSupportingText(
+            text=self.selectedVideoHeight
         )
 
-        self.videoQualityDropDownMenuButton = MDListItem(
+        self.videoHeightDropDownMenuButton = MDListItem(
             MDListItemLeadingIcon(
                 icon="high-definition-box"
             ),
-            self.videoQualityDropDownMenuButtonText,
+            self.videoHeightDropDownMenuButtonText,
             MDListItemTrailingIcon(
                 icon="high-definition-box"
             ),
             size_hint=(1, None),
-            on_release=lambda *_: self._onVideoQualityDropDownMenuButtonRelease()
+            on_release=lambda dt: self._onVideoHeightDropDownMenuButtonRelease()
         )
 
-        self.videoQualityDropDownMenuItems = [
-            self._makeDropDownMenuItem("quality", "Best quality"),
-            self._makeDropDownMenuItem("quality", "2160p"),
-            self._makeDropDownMenuItem("quality", "1440p"),
-            self._makeDropDownMenuItem("quality", "1080p"),
-            self._makeDropDownMenuItem("quality", "720p"),
-            self._makeDropDownMenuItem("quality", "480p"),
-            self._makeDropDownMenuItem("quality", "360p"),
-            self._makeDropDownMenuItem("quality", "Lowest quality")
-        ]
 
-        self.videoQualityDropDownMenu = MDDropdownMenu(
-            caller=self.videoQualityDropDownMenuButton, # the widget that opens it
-            items=self.videoQualityDropDownMenuItems,
+        self.videoHeightDropDownMenuItems = []
+
+        def _selectVideoHeight(videoHeight):
+            self.selectedVideoHeight = videoHeight
+
+        for videoHeight in self.videoHeights:
+            self.videoHeightDropDownMenuItems.append({
+                "text": videoHeight,
+                "on_release": lambda dt: _selectVideoHeight(videoHeight)
+            })
+
+        self.videoHeightDropDownMenu = MDDropdownMenu(
+            caller=self.videoHeightDropDownMenuButton, # the widget that opens it
+            items=self.videoHeightDropDownMenuItems,
             position="bottom",
             hor_growth="right",
             ver_growth="down"
@@ -116,11 +128,11 @@ class SelectVideoFormatDialogue(MDDialog):
 
             MDDialogContentContainer(
             
-                MDLabel(text="Video file format"),
-                self.videoFileFormatDropDownMenuButton,
+                MDLabel(text="Video extension"),
+                self.videoExtDropDownMenuButton,
 
-                MDLabel(text="Video quality"),
-                self.videoQualityDropDownMenuButton,
+                MDLabel(text="Video height"),
+                self.videoHeightDropDownMenuButton,
 
                 MDDialogButtonContainer(
                     Widget(
@@ -132,14 +144,14 @@ class SelectVideoFormatDialogue(MDDialog):
                             text="Cancel"
                         ),
                         style="text",
-                        on_release=lambda x: self.dismiss()
+                        on_release=lambda dt: self.dismiss()
                     ),
                     MDButton(
                         MDButtonText(
                             text="Confirm"
                         ),
                         style="text",
-                        on_release=lambda x: self._on_confirm()
+                        on_release=lambda dt: self._on_confirm()
                     ),
                     spacing="8dp"
                 ),
@@ -155,35 +167,10 @@ class SelectVideoFormatDialogue(MDDialog):
 
         self.register_event_type("on_confirm")
 
-    def setVideoFormat(self, key, value):
-        self.videoFormat[key] = value
-        print(self.videoFormat)
+    def _onVideoExtDropDownMenuButtonRelease(self):
 
-    def selectItem(self, key, value):
-
-        self.setVideoFormat(key, value)
-
-        if key == "fileFormat":
-            self.videoFileFormatDropDownMenuButtonText.text = value
-            self.videoFileFormatDropDownMenu.dismiss()
-        elif key == "quality":
-            self.videoQualityDropDownMenuButtonText.text = value
-            self.videoQualityDropDownMenu.dismiss()
-        else:
-            raise Exception(f"Error: key '{key}' is invalid")
-
-    def _makeDropDownMenuItem(self, key, value):
-        return {
-            "text": value,
-            "divider": None,
-            "divider_color": (1, 0, 0, 1),
-            "on_release": lambda *_: self.selectItem(key, value)
-        }
-
-    def _onVideoFileFormatDropDownMenuButtonRelease(self):
-
-        menu = self.videoFileFormatDropDownMenu
-        caller = self.videoFileFormatDropDownMenuButton
+        menu = self.videoExtDropDownMenu
+        caller = self.videoExtDropDownMenuButton
 
         def openMenu(*_):
             menu.open()
@@ -194,10 +181,10 @@ class SelectVideoFormatDialogue(MDDialog):
 
         Clock.schedule_once(openMenu)
 
-    def _onVideoQualityDropDownMenuButtonRelease(self):
+    def _onVideoHeightDropDownMenuButtonRelease(self):
 
-        menu = self.videoQualityDropDownMenu
-        caller = self.videoQualityDropDownMenuButton
+        menu = self.videoHeightDropDownMenu
+        caller = self.videoHeightDropDownMenuButton
 
         def openMenu(*_):
             menu.open()
@@ -219,5 +206,8 @@ class SelectVideoFormatDialogue(MDDialog):
 
         self.dispatch(
             "on_confirm",
-            self.videoFormat
+            {
+                "ext": self.selectedVideoExt,
+                "height": self.selectedVideoHeight
+            }
         )

@@ -6,7 +6,18 @@ from kivymd.uix.label import MDIcon, MDLabel
 
 import Colors
 
+from kivy.properties import (
+    NumericProperty,
+    StringProperty,
+    ObjectProperty,
+    BooleanProperty
+)
+
 class ErrorCard(MDCard):
+    
+    title = StringProperty("Could not fetch video info")
+    body = StringProperty("")
+    show = BooleanProperty(False)
 
     def __init__(self, **kwargs):
 
@@ -40,7 +51,7 @@ class ErrorCard(MDCard):
         )
 
         self.errorTitleLabel = MDLabel(
-            text="Could not fetch video info",
+            text=self.title,
             theme_text_color="Custom",
             text_color=Colors.black,
             halign="left",
@@ -58,7 +69,7 @@ class ErrorCard(MDCard):
         self.errorTopBar.add_widget(self.errorTitleLabel)
 
         self.errorBodyLabel = MDLabel(
-            text="",
+            text=self.body,
             theme_text_color="Custom",
             text_color=Colors.black,
             halign="left",
@@ -73,14 +84,10 @@ class ErrorCard(MDCard):
             )
         )
 
-    def show(self):
-        self.opacity = 1
+        self.bind(show=self._onShow)
 
-    def hide(self):
-        self.opacity = 0
-
-    def setTitle(self, newTitle):
-        self.errorTitleLabel.text = newTitle
-
-    def setBody(self, newBody):
-        self.errorBodyLabel.text = newBody
+    def _onShow(self):
+        if self.show:
+            self.opacity = 1
+        else:
+            self.opacity = 1

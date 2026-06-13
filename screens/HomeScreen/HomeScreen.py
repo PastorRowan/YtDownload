@@ -20,13 +20,26 @@ from kivy.clock import Clock
 from kivy.metrics import dp
 
 from threading import Thread
-import yt_download
+import DownloadQueue
 
 import Colors
 
 import CustomGraphics
 
+from DownloadQueue import (
+    DownloadJob,
+    DownloadQueue
+)
+
+import InfoDict
+
 Window.clearcolor = Colors.white
+
+from kivy.properties import (
+    NumericProperty,
+    StringProperty,
+    ObjectProperty
+)
 
 class HomeScreen(Screen):
 
@@ -46,9 +59,9 @@ class HomeScreen(Screen):
         self.topBarHBoxLayout = TopBarHBoxLayout()
 
         self.selectedVideoInfoCard = VideoInfoCard(
-            thumbnailLink="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-            title="Never going to give you up - Rick astley",
-            author="Rick astley",
+            thumbnailLink="",
+            title="",
+            author="",
             pos_hint={ "center_x": 0.5, "center_y": 0.5 }
         )
 
@@ -84,24 +97,17 @@ class HomeScreen(Screen):
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
-                height=dp(50)
+                height=dp(25)
             )
         )
         self.rootVBoxLayout.add_widget(self.input)
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
-                height=dp(50)
+                height=dp(25)
             )
         )
         self.rootVBoxLayout.add_widget(self.errorCard)
-        
-        self.rootVBoxLayout.add_widget(
-            Widget(
-                size_hint=(1, 1),
-            )
-        )
-        
 
         self.rootVBoxLayout.add_widget(self.downloadPromptButton)
 
@@ -110,8 +116,6 @@ class HomeScreen(Screen):
         self.scroll.add_widget(self.rootVBoxLayout)
 
         self.add_widget(self.scroll)
-
-        self.fetchVideoInfoThead = None
 
     def onDownloadPromptButtonRelease(self, instance):
 
@@ -135,14 +139,11 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
 https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
         """
 
-        extractInfoResult = yt_download.get_video_info(
-            url,
-            download=False
-        )
+        extractInfoResult = DownloadQueue.getVideoInfo(url="https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi")
 
         if extractInfoResult["ok"]:
             Clock.schedule_once(
-                lambda dt: self.successFetchVideoInfo()
+                lambda dt: self.successFetchVideoInfo(extractInfoResult["video_info"])
             )
         else:
             Clock.schedule_once(
@@ -153,17 +154,30 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
             lambda dt: self.finishFetchVideoInfo()
         )
 
-    def successFetchVideoInfo(self):
-        self.errorCard.hide()
+    def successFetchVideoInfo(self, videoInfo: InfoDict.InfoDict):
+
+        self.errorCard.show = False
+
+        self.downloadOptionsDialogue.availableVideoExts = InfoDict.getAvailableVideoExts(videoInfo)
+        self.downloadOptionsDialogue.availableVideoHeights = InfoDict.getAvailableVideoExts(videoInfo)
+
+        self.downloadOptionsDialogue.availableAudioExts = InfoDict.getAvailableAudioExts(videoInfo)
+        self.downloadOptionsDialogue.availableAbrs = InfoDict.getAvailableAudioExts(videoInfo)
+
+        self.selectedVideoInfoCard.thumbnailLink = videoInfo["thumbnail"]
+        self.selectedVideoInfoCard.title = videoInfo["title"]
+        self.selectedVideoInfoCard.author = videoInfo["channel"]
+        self.selectedVideoInfoCard.display = True
+
         self.downloadOptionsDialogue.open()
 
     def failFetchVideoInfo(self, message):
-        self.errorCard.setBody(message)
-        self.errorCard.show()
+        self.errorCard.body = message
+        self.errorCard.show = True
 
     def finishFetchVideoInfo(self):
 
-        self.downloadOptionsDialogue.open()
+        # self.downloadOptionsDialogue.open()
 
         """
         Clock.schedule_once(
