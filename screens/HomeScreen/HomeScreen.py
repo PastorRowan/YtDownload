@@ -23,15 +23,13 @@ from kivy.clock import Clock
 from kivy.metrics import dp
 
 from threading import Thread
-import DownloadQueue
 
 import Colors
 
 import CustomGraphics
 
 from DownloadQueue import (
-    DownloadJob,
-    DownloadQueue
+    isUrlValid
 )
 
 import InfoDict
@@ -45,6 +43,8 @@ from kivy.properties import (
 )
 
 from pprint import pprint
+
+import config
 
 class HomeScreen(Screen):
 
@@ -63,20 +63,6 @@ class HomeScreen(Screen):
 
         self.topBarHBoxLayout = TopBarHBoxLayout()
 
-        self.selectedVideoInfoCard = VideoInfoCard(
-            thumbnailLink="",
-            title="",
-            author="",
-            pos_hint={ "center_x": 0.5, "center_y": 0.5 }
-        )
-
-        CustomGraphics.set_max_width(
-            widget=self.selectedVideoInfoCard,
-            reference_widget=Window,
-            max_width=dp(600),
-            margin=dp(100)
-        )
-
         self.input = MDTextField(
             size_hint=(1, None),
             text="",
@@ -94,11 +80,10 @@ class HomeScreen(Screen):
             pos_hint={ "right": 1, "y": 1 }
         )
         self.downloadPromptButton.bind(
-            on_release=self.onDownloadPromptButtonRelease
+            on_release=self._onDownloadPromptButtonRelease
         )
 
         self.rootVBoxLayout.add_widget(self.topBarHBoxLayout)
-        self.rootVBoxLayout.add_widget(self.selectedVideoInfoCard)
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
@@ -116,7 +101,10 @@ class HomeScreen(Screen):
 
         self.rootVBoxLayout.add_widget(self.downloadPromptButton)
 
-        self.downloadOptionsDialogue = DownloadOptionsDialogue()
+        self.downloadOptionsDialogue = DownloadOptionsDialogue(
+            url="",
+            downloadType="video"
+        )
 
         self.downloadOptionsDialogue.bind(
             on_confirm=self._onDownloadOptionsDialogueConfirm
@@ -126,7 +114,16 @@ class HomeScreen(Screen):
 
         self.add_widget(self.scroll)
 
-    def onDownloadPromptButtonRelease(self, instance):
+        self.bind(
+
+        )
+
+    def _onInput():
+        
+
+    def _onDownloadPromptButtonRelease(self, instance):
+
+        TEST_URL = "https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi"
 
         """
 https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
@@ -134,67 +131,15 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
 
         url = self.input.text
 
-        # run download in background thread
-        self.fetchVideoInfoThead = Thread(
-            target=self.fetchVideoInfo,
-            args=(url,),
-            daemon=True
-        )
-        self.fetchVideoInfoThead.start()
+        url = TEST_URL
 
-    def fetchVideoInfo(self, url):
-
-        """
-https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
-        """
-
-        extractInfoResult = DownloadQueue.getVideoInfo(url="https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi")
-
-        if extractInfoResult["ok"]:
-            Clock.schedule_once(
-                lambda dt: self._successFetchVideoInfo(extractInfoResult["video_info"])
-            )
+        if not isUrlValid(url):
+            self.errorCard.title = "Url is invalid"
+            self.errorCard.body = f"Url '{url}' is invalid"
+            self.errorCard.show = True
         else:
-            Clock.schedule_once(
-                lambda dt: self._failFetchVideoInfo(extractInfoResult["error_msg"])
-            )
+            self.downloadOptionsDialogue.open()
 
-        Clock.schedule_once(
-            lambda dt: self._finishFetchVideoInfo()
-        )
-
-    def _successFetchVideoInfo(self, videoInfo: InfoDict.InfoDict):
-
-        self.errorCard.show = False
-
-        self.downloadOptionsDialogue.availableVideoExts = InfoDict.getAvailableVideoExts(videoInfo)
-        self.downloadOptionsDialogue.availableVideoHeights = InfoDict.getAvailableVideoHeights(videoInfo)
-
-        self.downloadOptionsDialogue.availableAudioExts = InfoDict.getAvailableAudioExts(videoInfo)
-        self.downloadOptionsDialogue.availableAbrs = InfoDict.getAvailableAudioAbrs(videoInfo)
-
-        self.selectedVideoInfoCard.thumbnailLink = videoInfo["thumbnail"]
-        self.selectedVideoInfoCard.title = videoInfo["title"]
-        self.selectedVideoInfoCard.author = videoInfo["channel"]
-        self.selectedVideoInfoCard.display = True
-
-        self.downloadOptionsDialogue.open()
-
-    def _failFetchVideoInfo(self, message):
-        self.errorCard.body = message
-        self.errorCard.show = True
-
-    def _finishFetchVideoInfo(self):
-
-        # self.downloadOptionsDialogue.open()
-
-        """
-        Clock.schedule_once(
-            lambda dt: self.hideDownloadVideoOptionsDialogueForm(),
-            2
-        )
-        """
-    
     def _onDownloadOptionsDialogueConfirm(
         self,
         selectedFormats: SelectedFormats

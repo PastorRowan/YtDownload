@@ -54,6 +54,8 @@ from DownloadQueue import (
     DownloadQueue
 )
 
+import config
+
 class VideoFormat(TypedDict):
     ext: str
     height: int
@@ -66,22 +68,26 @@ class SelectedFormats(TypedDict):
     selectedVideoFormat: VideoFormat
     selectedAudioFormat: AudioFormat
 
+DEFAULT_FILENAME = "Default"
+
 class DownloadOptionsDialogue(MDDialog):
 
-    fileName: str = StringProperty("")
-    downloadType: str = StringProperty("")
+    url: str = StringProperty("")
 
-    availableVideoExts: list[str] = ListProperty([])
-    selectedVideoExt: str = StringProperty("-")
+    fileName: str = StringProperty(DEFAULT_FILENAME)
+    downloadType = StringProperty(config.DEFAULT_DOWNLOAD_TYPE, options=config.ALLOWED_DOWNLOAD_TYPES)
 
-    availableVideoHeights: list[str] = ListProperty([])
-    selectedVideoHeight: str = StringProperty("-")
+    availableVideoExts: list[str] = ListProperty(config.ALLOWED_VIDEO_EXTS)
+    selectedVideoExt: str = StringProperty(config.DEFAULT_VIDEO_EXT, options=config.ALLOWED_VIDEO_EXTS)
 
-    availableAudioExts: list[str] = ListProperty([])
-    selectedAudioExt: str = StringProperty("-")
+    availableVideoHeights: list[str] = ListProperty(config.ALLOWED_VIDEO_HEIGHTS)
+    selectedVideoHeight: str = StringProperty(config.DEFAULT_VIDEO_HEIGHT, options=config.ALLOWED_VIDEO_HEIGHTS)
 
-    availableAbrs: list[str] = ListProperty([])
-    selectedAudioAbr: str = StringProperty("-")
+    availableAudioExts: list[str] = ListProperty(config.ALLOWED_AUDIO_EXTS)
+    selectedAudioExt: str = StringProperty(config.DEFAULT_AUDIO_EXT, options=config.ALLOWED_AUDIO_EXTS)
+
+    availableAbrs: list[str] = ListProperty(config.ALLOWED_ABRS)
+    selectedAudioAbr: str = StringProperty(config.DEFAULT_ABR, options=config.ALLOWED_ABRS)
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -277,8 +283,6 @@ class DownloadOptionsDialogue(MDDialog):
                 self._onAudioFormatConfirmed(selectAudioFormatDialogue)
         )
 
-        self.register_event_type("on_confirm")
-
         self.bind(
             downloadType=self._onDownloadType
         )
@@ -335,22 +339,24 @@ class DownloadOptionsDialogue(MDDialog):
     def _on_download_options_confirmed(self):
         print("_onDownloadOptionsConfirmed: created download job and added it to download queue")
 
-        selectedFormats: SelectedFormats = {
-            "selectedVideoFormat": {
-                "ext": self.selectVideoFormatDialogue.selectedVideoExt,
-                "height": self.selectVideoFormatDialogue.selectedVideoHeight
-            },
-            "selectedAudioFormat": {
-                "ext": self.selectAudioFormatDialogue.selectedAudioExt,
-                "abr": self.selectAudioFormatDialogue.selectedAudioAbr
-            }
-        }
+        jobFileName = None
 
-        self.dispatch("on_confirm", selectedFormats)
+        if self.fileName != DEFAULT_FILENAME:
+            jobFileName =self.fileName
 
-    def on_confirm(self):
-        """
-        Default handler required by Kivy.
-        Override or bind to this event externally.
-        """
-        pass
+        newJob = DownloadJob(
+
+            url=self.url,
+
+            fileName=jobFileName,
+            downloadType=self.downloadType,
+
+            videoExt=self.selectedVideoExt,
+            videoHeight=self.selectedVideoHeight,
+
+            audioExt=self.selectedAudioExt,
+            abr=self.selectedAudioAbr
+
+        )
+
+        DownloadQueue.addDownloadJob(newJob)

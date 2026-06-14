@@ -180,14 +180,18 @@ class SelectAudioFormatDialogue(MDDialog):
         self.register_event_type("on_confirm")
 
         self.bind(
-            audioExts=lambda instance, value: self._onAudioExts(instance, value)
+            audioExts=lambda instance, value: self._onAudioExts()
         )
 
         self.bind(
-            audioAbrs=lambda instance, value: self._onAudioAbrs(instance, value)
+            audioAbrs=lambda instance, value: self._onAudioAbrs()
         )
 
-    def _onAudioExts(self, instance, value):
+        self._onAudioExts()
+
+        self._onAudioAbrs()
+
+    def _onAudioExts(self):
 
         audioExtDropDownMenu = self.audioExtDropDownMenu
 
@@ -203,7 +207,7 @@ class SelectAudioFormatDialogue(MDDialog):
                 "on_release": lambda x=audioExt: _selectAudioExt(x)
             })
 
-    def _onAudioAbrs(self, instance, value):
+    def _onAudioAbrs(self):
 
         audioAbrDropDownMenu = self.audioAbrDropDownMenu
 

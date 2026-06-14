@@ -15,7 +15,7 @@ from kivy.properties import (
 
 class ErrorCard(MDCard):
     
-    title = StringProperty("Could not fetch video info")
+    title = StringProperty("")
     body = StringProperty("")
     show = BooleanProperty(False)
 
@@ -84,10 +84,25 @@ class ErrorCard(MDCard):
             )
         )
 
-        self.bind(show=self._onShow)
+        self.bind(
+            title=lambda instance, value: self._onTitle(instance, value)
+        )
+        self.bind(
+            body=lambda instance, value: self._onBody(instance, value)
+        )
 
-    def _onShow(self):
-        if self.show:
+        self.bind(
+            show=lambda instance, value: self._onShow(instance, value)
+        )
+
+    def _onTitle(self, instance, value):
+        self.errorTitleLabel.text = value
+
+    def _onBody(self, instance, value):
+        self.errorBodyLabel.text = value
+
+    def _onShow(self, instance, value):
+        if value:
             self.opacity = 1
         else:
-            self.opacity = 1
+            self.opacity = 0

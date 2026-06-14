@@ -10,6 +10,8 @@ from typing import (
     Set
 )
 
+import config
+
 class Fragment(TypedDict, total=False):
     """Fragment of a fragmented media."""
     url: str                          # fragment's URL
@@ -297,10 +299,7 @@ class InfoDict(TypedDict, total=False):
 
 def getAvailableVideoExts(infoDict: InfoDict) -> List[str]:
 
-    ALLOWED_VIDEO_EXTS: list[str] = [
-        "mp4",
-        "webm"
-    ]
+    ALLOWED_VIDEO_EXTS = config.ALLOWED_VIDEO_EXTS
 
     formats = infoDict.get("formats") or []
 
@@ -315,14 +314,7 @@ def getAvailableVideoExts(infoDict: InfoDict) -> List[str]:
 
 def getAvailableVideoHeights(infoDict: InfoDict) -> List[str]:
 
-    ALLOWED_VIDEO_HEIGHTS: list[int] = [
-        3840,
-        1440,
-        1080,
-        720,
-        480,
-        360
-    ]
+    ALLOWED_VIDEO_HEIGHTS = config.ALLOWED_VIDEO_HEIGHTS
 
     formats = infoDict.get("formats") or []
 
@@ -330,7 +322,8 @@ def getAvailableVideoHeights(infoDict: InfoDict) -> List[str]:
 
     for f in formats:
         height: int = f.get("height")
-        if height in ALLOWED_VIDEO_HEIGHTS:
+        strHeight: str = str(height)
+        if strHeight in ALLOWED_VIDEO_HEIGHTS:
             heights.add(str(height))
 
     sortedHeights: list[int] = sorted(heights)
@@ -341,11 +334,7 @@ def getAvailableVideoHeights(infoDict: InfoDict) -> List[str]:
 
 def getAvailableAudioExts(infoDict: InfoDict) -> List[str]:
 
-    ALLOWED_AUDIO_EXTS: list[str] = [
-        "m4a",
-        "webm",
-        "opus"
-    ]
+    ALLOWED_AUDIO_EXTS = config.ALLOWED_AUDIO_EXTS
 
     formats = infoDict.get("formats") or []
 
@@ -361,20 +350,16 @@ def getAvailableAudioExts(infoDict: InfoDict) -> List[str]:
 
 def getAvailableAudioAbrs(infoDict: InfoDict) -> list[str]:
 
-    ALLOWED_ABRS: list[float] = [
-        153.038,
-        129.568,
-        59.571,
-        48.853
-    ]
+    ALLOWED_ABRS = config.ALLOWED_ABRS
 
     formats = infoDict.get("formats") or []
 
-    abr_set: Set[float] = set()
+    abr_set: Set[str] = set()
 
     for f in formats:
         abr: float = f.get("abr")
-        if abr in ALLOWED_ABRS:
+        strAbr: str = str(abr)
+        if strAbr in ALLOWED_ABRS:
             abr_set.add(abr)
 
     sortedAbrs: list[float] = sorted(abr_set)

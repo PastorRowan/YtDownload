@@ -178,14 +178,18 @@ class SelectVideoFormatDialogue(MDDialog):
         self.register_event_type("on_confirm")
 
         self.bind(
-            videoExts=lambda instance, value: self._onVideoExts(instance, value)
+            videoExts=lambda instance, value: self._onVideoExts()
         )
 
         self.bind(
-            videoHeights=lambda instance, value: self._onVideoHeights(instance, value)
+            videoHeights=lambda instance, value: self._onVideoHeights()
         )
 
-    def _onVideoExts(self, instance, value):
+        self._onVideoExts()
+
+        self._onVideoHeights()
+
+    def _onVideoExts(self):
 
         videoExtDropDownMenu = self.videoExtDropDownMenu
 
@@ -201,7 +205,7 @@ class SelectVideoFormatDialogue(MDDialog):
                 "on_release": lambda x=videoExt: _selectVideoExt(x)
             })
 
-    def _onVideoHeights(self, instance, value):
+    def _onVideoHeights(self):
 
         videoHeightDropDownMenu = self.videoHeightDropDownMenu
 

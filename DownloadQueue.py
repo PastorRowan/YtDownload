@@ -8,18 +8,21 @@ from kivy.event import EventDispatcher
 from kivy.properties import (
     NumericProperty,
     StringProperty,
-    ObjectProperty
+    ObjectProperty,
+    BooleanProperty,
+    ListProperty
 )
 from kivy.clock import Clock
 
-from queue import Queue
-from threading import Thread
+from threading import Thread, Event
 
 from pprint import pprint
 
 import config
 
 import InfoDict
+
+from urllib.parse import urlparse
 
 class YTDLPLogger:
 
@@ -32,24 +35,6 @@ class YTDLPLogger:
     def error(self, msg):
         print(msg)
 
-ydl_opts = {
-    "logger": YTDLPLogger(),
-    "ffmpeg_location": config.FFMPEG_PATH,
-    "js_runtimes": {
-        "deno": {
-            "path": config.DENO_PATH
-        }
-    },
-    "remote_components": [
-        "ejs:github"
-    ],
-    "outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
-    "format": "bestvideo+bestaudio/best",
-    "merge_output_format": "mp4",
-    "no_color": True,
-    "progress_hooks": [],
-}
-
 class ExtractInfoResult(TypedDict):
     ok: bool
     error_msg: str | None
@@ -57,8 +42,31 @@ class ExtractInfoResult(TypedDict):
 
 class DownloadJob(EventDispatcher):
 
-    url = ""
-    status = StringProperty("queued")
+    STATUS_TYPES = (
+        "queued",
+        "downloading",
+        "error",
+        "paused"
+    )
+
+    cancel_event = None
+
+    url = StringProperty("")
+
+    fileName = StringProperty(None)
+    downloadType = StringProperty(config.DEFAULT_DOWNLOAD_TYPE, options=config.ALLOWED_DOWNLOAD_TYPES)
+
+    videoExt = StringProperty(None, options=config.ALLOWED_VIDEO_EXTS)
+    videoHeight = StringProperty(None, options=config.ALLOWED_VIDEO_HEIGHTS)
+
+    audioExt = StringProperty(None, options=config.ALLOWED_AUDIO_EXTS)
+    abr = StringProperty(None, options=config.ALLOWED_ABRS)
+
+    title = StringProperty("")
+    channel = StringProperty("")
+    thumbnail = StringProperty("")
+
+    status = StringProperty("queued", options=STATUS_TYPES)
     error = StringProperty("")
     progress = NumericProperty(0)
     speed = NumericProperty(0)
@@ -66,10 +74,17 @@ class DownloadJob(EventDispatcher):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.cancel_event = Event()
 
-class _DownloadQueue():
+class DownloadCancelled(Exception):
+    pass
 
-    _queue = Queue()
+class _DownloadQueue(EventDispatcher):
+
+    jobs = ListProperty([])
+
+    _currentJob = ObjectProperty(None, allownone=True)
+    _currentThread = ObjectProperty(None, allownone=True)
 
     def __init__(self):
         pass
@@ -77,11 +92,13 @@ class _DownloadQueue():
     @staticmethod
     def _getVideoInfo(
         url: str,
-        download: bool = False,
         job: None | DownloadJob = None
     ) -> ExtractInfoResult:
 
         def progressHook(d):
+
+            if job.cancel_event.is_set():
+                raise DownloadCancelled()
 
             if job is None:
                 return
@@ -110,41 +127,80 @@ class _DownloadQueue():
                     job.progress = 1.0
                 Clock.schedule_once(updateJobProgressToFinished)
 
-        ydl_opts_local = dict(ydl_opts)
-        ydl_opts_local["progress_hooks"] = [progressHook]
+        ydl_opts = {
+            # Prevents yt-dlp from using overwritten kivy sys.error object
+            "logger": YTDLPLogger(),
+            "ffmpeg_location": config.FFMPEG_PATH,
+            "js_runtimes": {
+                "deno": {
+                    "path": config.DENO_PATH
+                }
+            },
+            "remote_components": [
+                "ejs:github"
+            ],
+            "outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
+            "format": "bestvideo+bestaudio/best",
+            "merge_output_format": "mp4",
+            # leave default for ffmpeg merge for video and audio format
+            # "postprocessors": [],
+            "no_color": True,
+            "progress_hooks": [progressHook],
+        }
 
-        with yt_dlp.YoutubeDL(ydl_opts_local) as ydl:
+        if job.downloadType == "video":
+            ydl_opts["format"] = f"bestvideo[height={job.videoHeight}]+bestaudio[acodec={job.audioExt}][abr>={job.abr}]"
+            ydl_opts["merge_output_format"] = job.videoExt
+        elif job.downloadType == "audio":
+            ydl_opts["format"] = f"bestaudio[acodec={job.audioExt}][abr>={job.abr}]"
+            ydl_opts["postprocessors"] = []
+        else:
+            raise ValueError(f"job.downloadType '{job.downloadType}' is invalid")
+        
+        try:
 
-            try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
 
-                info = ydl.extract_info(
+                metaData: InfoDict.InfoDict = ydl.extract_info(
                     url=url,
-                    download=download
+                    download=False
+                )
+
+                def updateMetaData(dt):
+                    job.title = metaData["title"]
+                    job.channel = metaData["channel"]
+                    job.thumbnail = metaData["thumbnail"]
+
+                Clock.schedule_once(updateMetaData)
+
+                videoInfo: InfoDict.InfoDict = ydl.extract_info(
+                    url=url,
+                    download=True
                 )
 
                 return {
                     "ok": True,
                     "error_msg": None,
-                    "video_info": info
+                    "video_info": videoInfo
                 }
 
-            except Exception as e:
+        except Exception as e:
 
-                errorMsg = str(e)
+            errorMsg = str(e)
 
-                print(errorMsg)
+            print(errorMsg)
 
-                def updateStatusAndError(dt):
-                    job.status = "error"
-                    job.error = errorMsg
+            def updateStatusAndError(dt):
+                job.status = "error"
+                job.error = errorMsg
 
-                Clock.schedule_once(updateStatusAndError)
+            Clock.schedule_once(updateStatusAndError)
 
-                return {
-                    "ok": False,
-                    "error_msg": errorMsg,
-                    "video_info": None
-                }
+            return {
+                "ok": False,
+                "error_msg": errorMsg,
+                "video_info": None
+            }
 
     @staticmethod
     def getVideoInfo(
@@ -154,35 +210,86 @@ class _DownloadQueue():
             url=url,
             download=False
         )
+    
+    def _onDownloadFinished(
+        self,
+        job: DownloadJob,
+        result: ExtractInfoResult
+    ) -> None:
 
-    def _processDownloads(self):
+        if not result["ok"]:
+            job.status = "error"
+            job.error = result["error_msg"] or ""
 
-        while True:
+        if self.jobs and self.jobs[0] is job:
+            self.jobs = self.jobs[1:]
 
-            job = self._queue.get()
+        self._currentJob = None
+        self._currentThread = None
 
-            try:
+        self._startNextDownload()
+    
+    def _downloadWorker(
+        self,
+        job: DownloadJob
+    ) -> None:
 
-                extractedInfoResult = _DownloadQueue._getVideoInfo(
-                    url=job.url,
-                    download=True,
-                    job=job
-                )
+        result = self._getVideoInfo(
+            url=job.url,
+            job=job
+        )
 
-                if not extractedInfoResult["ok"]:
-                    errorMsg = extractedInfoResult["error_msg"]
+        Clock.schedule_once(
+            lambda dt: self._onDownloadFinished(
+                job,
+                result
+            )
+        )
 
-            except Exception as e:
-                print(e)
-            finally:
-                self._queue.task_done()
+    def _startNextDownload(self) -> None:
 
-    def addDownloadJob(self, job: DownloadJob):
-        self._queue.put(job)
+        if self._currentThread is not None:
+            return
+
+        if not self.jobs:
+            return
+
+        job = self.jobs[0]
+
+        self._currentJob = job
+
+        job.status = "downloading"
+
+        self._currentThread = Thread(
+            target=self._downloadWorker,
+            args=(job,),
+            daemon=True
+        )
+
+        self._currentThread.start()
+
+    def addDownloadJob(
+        self,
+        job: DownloadJob
+    ) -> None:
+
+        self.jobs = self.jobs + [job]
+
+        if self._currentThread is None:
+            self._startNextDownload()
 
 DownloadQueue = _DownloadQueue()
 
-Thread(
-    target=DownloadQueue._processDownloads,
-    daemon=True
-).start()
+def isUrlValid(url: str) -> bool:
+
+    try:
+
+        parsed = urlparse(url.strip())
+
+        return (
+            parsed.scheme in ("http", "https")
+            and parsed.netloc != ""
+        )
+
+    except Exception:
+        return False    
