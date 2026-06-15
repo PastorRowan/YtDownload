@@ -38,6 +38,7 @@ from kivymd.uix.chip import (
 )
 
 from kivy.clock import Clock
+from kivy.metrics import dp
 from kivy.properties import (
     StringProperty,
     NumericProperty,
@@ -46,7 +47,6 @@ from kivy.properties import (
 )
 
 from screens.HomeScreen.SelectVideoFormatDialogue import SelectVideoFormatDialogue
-
 from screens.HomeScreen.SelectAudioFormatDialogue import SelectAudioFormatDialogue
 
 from DownloadQueue import (
@@ -73,6 +73,9 @@ DEFAULT_FILENAME = "Default"
 class DownloadOptionsDialogue(MDDialog):
 
     url: str = StringProperty("")
+    thumbnail: str = StringProperty("")
+    title: str = StringProperty("")
+    channel: str = StringProperty("")
 
     fileName: str = StringProperty(DEFAULT_FILENAME)
     downloadType = StringProperty(config.DEFAULT_DOWNLOAD_TYPE, options=config.ALLOWED_DOWNLOAD_TYPES)
@@ -97,14 +100,14 @@ class DownloadOptionsDialogue(MDDialog):
 
         self.container = MDDialogContentContainer(
             orientation="vertical",
-            spacing="12dp",
-            padding="12dp"
+            spacing=dp(12),
+            padding=dp(12)
         )
 
         self.fileNameFieldVBox = MDBoxLayout(
             orientation="vertical",
             size_hint=(1, None),
-            spacing="12dp",
+            spacing=dp(12),
             adaptive_height=True
         )
 
@@ -347,6 +350,9 @@ class DownloadOptionsDialogue(MDDialog):
         newJob = DownloadJob(
 
             url=self.url,
+            thumbnail=self.thumbnail,
+            title=self.title,
+            channel=self.title,
 
             fileName=jobFileName,
             downloadType=self.downloadType,
@@ -360,3 +366,34 @@ class DownloadOptionsDialogue(MDDialog):
         )
 
         DownloadQueue.addDownloadJob(newJob)
+
+        """
+        urls = [
+            "https://youtu.be/Csr_Tj8G7SA?si=uXFNPsKXh5R9sV0b",
+            "https://youtu.be/nGbsO71K4g8?si=HsWSZ3NQnedkz-54",
+            "https://youtu.be/HdJeZ4nQ3hc?si=IHmnZ4UUtXZQa05l"
+        ]
+
+        for url in urls:
+            newJob = DownloadJob(
+
+                url=url,
+                thumbnail=self.thumbnail,
+                title=self.title,
+                channel=self.title,
+
+                fileName=jobFileName,
+                downloadType=self.downloadType,
+
+                videoExt=self.selectedVideoExt,
+                videoHeight=self.selectedVideoHeight,
+
+                audioExt=self.selectedAudioExt,
+                abr=self.selectedAudioAbr
+
+            )
+
+            DownloadQueue.addDownloadJob(newJob)
+        """
+
+        self.dismiss()

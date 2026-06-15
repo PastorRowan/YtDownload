@@ -176,7 +176,6 @@ class InfoDict(TypedDict, total=False):
     
     # Either formats or url must be present
     formats: Optional[List[Format]]   # List of formats (worst to best)
-    url: Optional[str]                # Final video URL
     
     # Optional video fields
     ext: Optional[str]                # Video filename extension

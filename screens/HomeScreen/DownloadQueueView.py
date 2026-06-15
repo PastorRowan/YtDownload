@@ -7,12 +7,23 @@ from kivymd.uix.label import MDIcon, MDLabel
 import Colors
 
 from DownloadQueue import (
-    DownloadQueue
+    _DownloadQueue
 )
 
-from VideoInfoCard import VideoInfoCard
+from screens.HomeScreen.DownloadJobView import DownloadJobView
+
+from kivy.properties import (
+    StringProperty,
+    NumericProperty,
+    BooleanProperty,
+    ObjectProperty,
+    ListProperty
+)
+from kivy.metrics import dp
 
 class DownloadQueueView(GridLayout):
+
+    downloadQueue: _DownloadQueue = ObjectProperty()
 
     def __init__(self, **kwargs):
 
@@ -22,27 +33,53 @@ class DownloadQueueView(GridLayout):
         kwargs.setdefault("padding", 10)
 
         super().__init__(
+            orientation="lr-tb",
             cols=2,
+            col_default_width=dp(275),
             **kwargs
         )
 
         self.bind(
-            minimum_height=self.setter("height")
+            downloadQueue=self._onDownloadQueueChanged
         )
 
-        DownloadQueue.bind(
-            jobs=lambda instance, value: self._on_jobs_changed(instance, value)
-        )
-        self._on_jobs_changed(DownloadQueue, DownloadQueue.jobs)
+        if self.downloadQueue:
+            self._onDownloadQueueChanged(
+                self,
+                self.downloadQueue
+            )
 
-    def _on_jobs_changed(self, instance, jobs):
+    def _onDownloadQueueChanged(self, instance, queue):
+
+        if not queue:
+            return
+
+        queue.bind(
+            jobs=self._onJobsChanged
+        )
+
+        self._onJobsChanged(
+            queue,
+            queue.jobs
+        )
+
+    def _onJobsChanged(self, instance, jobs):
 
         self.clear_widgets()
 
-        for job in jobs:
-            jobCard = VideoInfoCard(
-                thumbnailLink=job.thumbnail,
-                title=job.title,
-                author=job.channel,
+        numberOfJobs = len(jobs)
+
+        for index, job in enumerate(jobs):
+            jobView = DownloadJobView(
+                job=job,
+                # width=dp(400),
+                # height=dp(300),
+                # pos_hint={ "center_x": 0.5, "center_y": 0.5 }
             )
-            self.add_widget(jobCard)
+            self.add_widget(jobView)
+            if (index == numberOfJobs - 1) and (numberOfJobs % 2 == 1):
+                self.add_widget(
+                    Widget(
+                        size_hint=(1, None)
+                    )
+                )
