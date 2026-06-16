@@ -32,15 +32,18 @@ from Download import Types
 
 from Download.helpers import YTDLPLogger
 
+class DownloadPaused(Exception):
+    pass
+
 class DownloadCancelled(Exception):
     pass
 
 class _DownloadQueue(EventDispatcher):
 
-    jobs = ListProperty([])
+    jobs: list[DownloadJob] = ListProperty([])
 
-    _currentJob = ObjectProperty(None, allownone=True)
-    _currentThread = ObjectProperty(None, allownone=True)
+    _currentJob: DownloadJob = ObjectProperty(None, allownone=True)
+    _currentThread: Thread | None = ObjectProperty(None, allownone=True)
 
     def __init__(self):
         pass
@@ -57,7 +60,10 @@ class _DownloadQueue(EventDispatcher):
         def progressHook(d):
             nonlocal last_update_time
 
-            if job.cancel_event.is_set():
+            if job.status == "paused":
+                raise DownloadPaused()
+
+            if job.status == "cancelled":
                 raise DownloadCancelled()
 
             if job is None:
@@ -95,41 +101,39 @@ class _DownloadQueue(EventDispatcher):
                     job.progress = 1.0
                 Clock.schedule_once(updateJobProgressToFinished)
 
-        ydl_download_options = {
-            # Prevents yt-dlp from using overwritten kivy sys.error object
-            "logger": YTDLPLogger(),
-            "ffmpeg_location": config.FFMPEG_PATH,
-            "js_runtimes": {
-                "deno": {
-                    "path": config.DENO_PATH
-                }
-            },
-            "remote_components": [
-                "ejs:github"
-            ],
-            "outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
-            "format": "bestvideo+bestaudio/best",
-            "merge_output_format": "mp4",
-            # leave default for ffmpeg merge for video and audio format
-            # "postprocessors": [],
-            "no_color": True,
-            "progress_hooks": [progressHook],
-        }
-
-        if job.downloadType == "video":
-            videoFormat = f"bestvideo[height>={job.videoHeight}]"
-            audioFormat = f"bestaudio[acodec={job.audioExt}][abr>={job.abr}]/best"
-            ydl_download_options["format"] = f"{videoFormat}+{audioFormat}"
-            ydl_download_options["format_sort"] = ["+height", "+abr"]
-            ydl_download_options["merge_output_format"] = job.videoExt
-        elif job.downloadType == "audio":
-            ydl_download_options["format"] = f"bestaudio[acodec={job.audioExt}][abr>={job.abr}] -S +abr"
-            ydl_download_options["merge_output_format"] = job.audioExt
-            ydl_download_options["postprocessors"] = []
-        else:
-            raise ValueError(f"job.downloadType '{job.downloadType}' is invalid")
-        
         try:
+
+            ydl_download_options = {
+                # Prevents yt-dlp from using overwritten kivy sys.error object
+                "logger": YTDLPLogger(),
+                "ffmpeg_location": config.FFMPEG_PATH,
+                "js_runtimes": {
+                    "deno": {
+                        "path": config.DENO_PATH
+                    }
+                },
+                "remote_components": [
+                    "ejs:github"
+                ],
+                "outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
+                "format": "bestvideo+bestaudio/best",
+                "merge_output_format": "mp4",
+                # leave default for ffmpeg merge for video and audio format
+                # "postprocessors": [],
+                "no_color": True,
+                "progress_hooks": [progressHook],
+            }
+
+            if job.downloadType == "video":
+                videoFormat = f"bestvideo[height>={job.videoHeight}]"
+                audioFormat = f"bestaudio[acodec={job.audioExt}][abr>={job.abr}]/best"
+                ydl_download_options["format"] = f"{videoFormat}+{audioFormat}"
+                ydl_download_options["format_sort"] = ["+height", "+abr"]
+                ydl_download_options["merge_output_format"] = job.videoExt
+            elif job.downloadType == "audio":
+                ydl_download_options["format"] = f"bestaudio[acodec={job.audioExt}][abr>={job.abr}] -S +abr"
+                ydl_download_options["merge_output_format"] = job.audioExt
+                ydl_download_options["postprocessors"] = []
 
             with yt_dlp.YoutubeDL(ydl_download_options) as ydl_download: 
 
@@ -153,7 +157,6 @@ class _DownloadQueue(EventDispatcher):
             def updateStatusAndError(dt):
                 job.status = "error"
                 job.error = errorMsg
-
             Clock.schedule_once(updateStatusAndError)
 
             return {
@@ -161,7 +164,7 @@ class _DownloadQueue(EventDispatcher):
                 "error_msg": errorMsg,
                 "video_info": None
             }
-    
+
     def _onDownloadFinished(
         self,
         job: DownloadJob,
@@ -228,5 +231,17 @@ class _DownloadQueue(EventDispatcher):
 
         if self._currentThread is None:
             self._startNextDownload()
+
+    def cancelDownloadJob(self):
+
+        if not self.jobs:
+            return
+        self.jobs[0].status = "cancelled"
+
+    def pauseDownloadJob(self):
+
+        if not self.jobs:
+            return
+        self.jobs[0].status = "paused"
 
 DownloadQueue = _DownloadQueue()

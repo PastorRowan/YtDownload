@@ -105,19 +105,19 @@ class DownloadJob(EventDispatcher):
         "queued",
         "downloading",
         "error",
-        "paused"
+        "paused",
+        "cancelled"
     ]
 
     STATUS_TYPES: tuple[Status, ...] = (
         "queued",
         "downloading",
         "error",
-        "paused"
+        "paused",
+        "cancelled"
     )
 
     DEFAULT_STATUS: Status = STATUS_TYPES[0]
-
-    cancel_event: Event = Event()
 
     url: str = StringProperty("")
 
