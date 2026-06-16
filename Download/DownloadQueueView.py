@@ -6,11 +6,11 @@ from kivymd.uix.label import MDIcon, MDLabel
 
 import Colors
 
-from DownloadQueue import (
+from Download.DownloadQueue import (
     _DownloadQueue
 )
 
-from screens.HomeScreen.DownloadJobView import DownloadJobView
+from Download.DownloadJobView import DownloadJobView
 
 from kivy.properties import (
     StringProperty,

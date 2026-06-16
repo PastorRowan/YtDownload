@@ -46,51 +46,17 @@ from kivy.properties import (
     ListProperty
 )
 
-from screens.HomeScreen.SelectVideoFormatDialogue import SelectVideoFormatDialogue
-from screens.HomeScreen.SelectAudioFormatDialogue import SelectAudioFormatDialogue
+from Download.DownloadJobVideoFormatDialogue import DownloadJobVideoFormatDialogue
+from Download.DownloadJobAudioFormatDialogue import DownloadJobAudioFormatDialogue
 
-from DownloadQueue import (
-    DownloadJob,
-    DownloadQueue
+from Download.DownloadJob import (
+    DownloadJob
 )
+from Download.DownloadQueue import DownloadQueue
 
-import config
+class DownloadJobOptionsDialogue(MDDialog):
 
-class VideoFormat(TypedDict):
-    ext: str
-    height: int
-
-class AudioFormat(TypedDict):
-    ext: str
-    abr: int
-
-class SelectedFormats(TypedDict):
-    selectedVideoFormat: VideoFormat
-    selectedAudioFormat: AudioFormat
-
-DEFAULT_FILENAME = "Default"
-
-class DownloadOptionsDialogue(MDDialog):
-
-    url: str = StringProperty("")
-    thumbnail: str = StringProperty("")
-    title: str = StringProperty("")
-    channel: str = StringProperty("")
-
-    fileName: str = StringProperty(DEFAULT_FILENAME)
-    downloadType = StringProperty(config.DEFAULT_DOWNLOAD_TYPE, options=config.ALLOWED_DOWNLOAD_TYPES)
-
-    availableVideoExts: list[str] = ListProperty(config.ALLOWED_VIDEO_EXTS)
-    selectedVideoExt: str = StringProperty(config.DEFAULT_VIDEO_EXT, options=config.ALLOWED_VIDEO_EXTS)
-
-    availableVideoHeights: list[str] = ListProperty(config.ALLOWED_VIDEO_HEIGHTS)
-    selectedVideoHeight: str = StringProperty(config.DEFAULT_VIDEO_HEIGHT, options=config.ALLOWED_VIDEO_HEIGHTS)
-
-    availableAudioExts: list[str] = ListProperty(config.ALLOWED_AUDIO_EXTS)
-    selectedAudioExt: str = StringProperty(config.DEFAULT_AUDIO_EXT, options=config.ALLOWED_AUDIO_EXTS)
-
-    availableAbrs: list[str] = ListProperty(config.ALLOWED_ABRS)
-    selectedAudioAbr: str = StringProperty(config.DEFAULT_ABR, options=config.ALLOWED_ABRS)
+    downloadJob: DownloadJob = ObjectProperty(DownloadJob())
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -121,7 +87,7 @@ class DownloadOptionsDialogue(MDDialog):
         self.fileNameFieldVBox.add_widget(
             MDTextField(
                 size_hint=(1, None),
-                text=self.fileName,
+                text=self.downloadJob.fileName,
                 hint_text="File Name",
                 multiline=False
             )
@@ -142,26 +108,30 @@ class DownloadOptionsDialogue(MDDialog):
             )
         )
 
+        self.videoDownloadTypeChip = MDSegmentedButtonItem(
+            MDSegmentButtonIcon(
+                icon="file-video-outline"
+            ),
+            MDSegmentButtonLabel(
+                text="Video"
+            ),
+            on_release=lambda dt: self._onVideoDownloadTypeChipRelease()
+        )
+
+        self.audioDownloadTypeChip = MDSegmentedButtonItem(
+            MDSegmentButtonIcon(
+                icon="file-music-outline"
+            ),
+            MDSegmentButtonLabel(
+                text="Audio"
+            ),
+            on_release=lambda dt: self._onAudioDownloadTypeChipRelease()
+        )
+
         self.downloadTypeVBox.add_widget(
             MDSegmentedButton(
-                MDSegmentedButtonItem(
-                    MDSegmentButtonIcon(
-                        icon="file-video-outline"
-                    ),
-                    MDSegmentButtonLabel(
-                        text="Video"
-                    ),
-                    on_release=lambda dt: self._onVideoDownloadTypeChipRelease()
-                ),
-                MDSegmentedButtonItem(
-                    MDSegmentButtonIcon(
-                        icon="file-music-outline"
-                    ),
-                    MDSegmentButtonLabel(
-                        text="Audio"
-                    ),
-                    on_release=lambda dt: self._onAudioDownloadTypeChipRelease()
-                )
+                self.videoDownloadTypeChip,
+                self.audioDownloadTypeChip
             )
         )
 
@@ -208,7 +178,7 @@ class DownloadOptionsDialogue(MDDialog):
             MDLabel(
                 text="Format preference",
                 size_hint=(1, None),
-                height=30
+                height=dp(30)
             )
         )
         self.formatVBox.add_widget(self.formatChipButtonContainer)
@@ -258,37 +228,74 @@ class DownloadOptionsDialogue(MDDialog):
         )
         self.add_widget(self.container)
 
-        self.selectVideoFormatDialogue = SelectVideoFormatDialogue(
-
-            videoExts=self.availableVideoExts,
-            selectedVideoExt=self.selectedVideoExt,
-
-            videoHeights=self.availableVideoHeights,
-            selectedVideoHeight=self.selectedVideoHeight
-
+        self.downloadJobVideoFormatDialogue = DownloadJobVideoFormatDialogue(
+            downloadJob=self.downloadJob
         )
-        self.selectVideoFormatDialogue.bind(
-            on_confirm=lambda selectVideoFormatDialogue, videoFormat:
-                self._onVideoFormatConfirmed(selectVideoFormatDialogue)
+        self.downloadJobVideoFormatDialogue.bind(
+            on_confirm=lambda downloadJobVideoFormatDialogue, videoFormat:
+                self._onVideoFormatConfirmed(downloadJobVideoFormatDialogue, videoFormat)
         )
 
-        self.selectAudioFormatDialogue = SelectAudioFormatDialogue(
-
-            audioExts=self.availableAudioExts,
-            selectedAudioExt=self.selectedAudioExt,
-
-            audioAbrs=self.availableAbrs,
-            selectedAudioAbr=self.selectedAudioAbr
-
+        self.downloadJobAudioFormatDialogue = DownloadJobAudioFormatDialogue(
+            downloadJob=self.downloadJob
         )
-        self.selectAudioFormatDialogue.bind(
-            on_confirm=lambda selectAudioFormatDialogue, audioFormat:
-                self._onAudioFormatConfirmed(selectAudioFormatDialogue)
+        self.downloadJobAudioFormatDialogue.bind(
+            on_confirm=lambda downloadJobAudioFormatDialogue, audioFormat:
+                self._onAudioFormatConfirmed(downloadJobAudioFormatDialogue, audioFormat)
         )
 
-        self.bind(
-            downloadType=self._onDownloadType
+        self.downloadJob.bind(
+            downloadType=lambda instance, value: self._onDownloadJobDownloadType(instance, value)
         )
+        self._onDownloadJobDownloadType(self, self.downloadJob.downloadType)
+
+    def _onDownloadJobDownloadType(self, instance, value):
+        if value == "video":
+            self.videoDownloadTypeChip.active = True
+            self.audioDownloadTypeChip.active = False
+            self._showVideoFormatChipButton()
+        elif value == "audio":
+            self.videoDownloadTypeChip.active = False
+            self.audioDownloadTypeChip.active = True
+            self._hideVideoFormatChipButton()
+
+    def _onVideoDownloadTypeChipRelease(self):
+        print("_onVideoDownloadTypeChipRelease")
+        print(self.availableVideoExts)
+        print(self.availableVideoHeights)
+        print(self.availableAudioExts)
+        print(self.availableAbrs)
+        self.downloadJob.downloadType = "video"
+
+    def _onAudioDownloadTypeChipRelease(self):
+        self.downloadJob.downloadType = "audio"
+
+    def _onVideoFormatChipRelease(self):
+        self.selectVideoFormatDialogue.open()
+
+    def _onAudioFormatChipRelease(self):
+        self.selectAudioFormatDialogue.open()
+
+    def _onVideoFormatConfirmed(
+        self,
+        downloadJobVideoFormatDialogue,
+        videoFormat
+    ):
+        downloadJobVideoFormatDialogue.dismiss()
+
+    def _onAudioFormatConfirmed(
+        self,
+        downloadJobAudioFormatDialogue,
+        audioFormat
+    ):
+        downloadJobAudioFormatDialogue.dismiss()
+
+    def _on_download_options_confirmed(self):
+        print("_onDownloadOptionsConfirmed: created download job and added it to download queue")
+
+        DownloadQueue.addDownloadJob(self.downloadJob)
+
+        self.dismiss()
 
     def _showVideoFormatChipButton(self):
         self.videoFormatChipButton.size_hint_x = self._videoFormatChipButtonDefaultSizeHintx
@@ -301,99 +308,3 @@ class DownloadOptionsDialogue(MDDialog):
         self.videoFormatChipButton.width = 0
         self.videoFormatChipButton.opacity = 0
         self.videoFormatChipButton.disabled = True
-
-    def _onDownloadType(self, instance, value):
-        if value == "video":
-            self._showVideoFormatChipButton()
-        elif value == "audio":
-            self._hideVideoFormatChipButton()
-        else:
-            raise ValueError(f"value '{value}' is invalid")
-
-    def _onVideoDownloadTypeChipRelease(self):
-        print("_onVideoDownloadTypeChipRelease")
-        print(self.availableVideoExts)
-        print(self.availableVideoHeights)
-        print(self.availableAudioExts)
-        print(self.availableAbrs)
-        self.downloadType = "video"
-
-    def _onAudioDownloadTypeChipRelease(self):
-        self.downloadType = "audio"
-
-    def _onVideoFormatChipRelease(self):
-        self.selectVideoFormatDialogue.open()
-
-    def _onAudioFormatChipRelease(self):
-        self.selectAudioFormatDialogue.open()
-
-    def _onVideoFormatConfirmed(
-        self,
-        selectVideoFormatDialogue,
-    ):
-        selectVideoFormatDialogue.dismiss()
-
-    def _onAudioFormatConfirmed(
-        self,
-        selectAudioFormatDialogue,
-    ):
-        selectAudioFormatDialogue.dismiss()
-
-    def _on_download_options_confirmed(self):
-        print("_onDownloadOptionsConfirmed: created download job and added it to download queue")
-
-        jobFileName = None
-
-        if self.fileName != DEFAULT_FILENAME:
-            jobFileName =self.fileName
-
-        newJob = DownloadJob(
-
-            url=self.url,
-            thumbnail=self.thumbnail,
-            title=self.title,
-            channel=self.title,
-
-            fileName=jobFileName,
-            downloadType=self.downloadType,
-
-            videoExt=self.selectedVideoExt,
-            videoHeight=self.selectedVideoHeight,
-
-            audioExt=self.selectedAudioExt,
-            abr=self.selectedAudioAbr
-
-        )
-
-        DownloadQueue.addDownloadJob(newJob)
-
-        """
-        urls = [
-            "https://youtu.be/Csr_Tj8G7SA?si=uXFNPsKXh5R9sV0b",
-            "https://youtu.be/nGbsO71K4g8?si=HsWSZ3NQnedkz-54",
-            "https://youtu.be/HdJeZ4nQ3hc?si=IHmnZ4UUtXZQa05l"
-        ]
-
-        for url in urls:
-            newJob = DownloadJob(
-
-                url=url,
-                thumbnail=self.thumbnail,
-                title=self.title,
-                channel=self.title,
-
-                fileName=jobFileName,
-                downloadType=self.downloadType,
-
-                videoExt=self.selectedVideoExt,
-                videoHeight=self.selectedVideoHeight,
-
-                audioExt=self.selectedAudioExt,
-                abr=self.selectedAudioAbr
-
-            )
-
-            DownloadQueue.addDownloadJob(newJob)
-        """
-
-        self.dismiss()

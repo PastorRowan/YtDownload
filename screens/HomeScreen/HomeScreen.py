@@ -16,9 +16,8 @@ from kivy.core.window import Window
 from screens.HomeScreen.VideoInfoCard import VideoInfoCard
 from screens.HomeScreen.TopBarHBoxLayout import TopBarHBoxLayout
 from screens.HomeScreen.ErrorCard import ErrorCard
-from screens.HomeScreen.DownloadOptionsDialogue import (
-    DownloadOptionsDialogue,
-    SelectedFormats
+from Download.DownloadJobOptionsDialogue import (
+    DownloadJobOptionsDialogue
 )
 
 from kivy.clock import Clock
@@ -30,15 +29,13 @@ import Colors
 
 import CustomGraphics
 
-from DownloadQueue import (
-    DownloadQueue,
-    isUrlValid,
-    getVideoMetaData
-)
+from Download.DownloadJob import DownloadJob
+from Download.DownloadQueue import DownloadQueue
+from Download.helpers import getVideoMetaData, isUrlValid
 
-from screens.HomeScreen.DownloadQueueView import DownloadQueueView
+from Download.DownloadQueueView import DownloadQueueView
 
-import InfoDict
+import Download.InfoDict as InfoDict
 
 Window.clearcolor = Colors.white
 
@@ -160,16 +157,13 @@ class HomeScreen(Screen):
             )
         )
 
-        self.downloadOptionsDialogue = DownloadOptionsDialogue(
-            url="",
-            downloadType="video"
-        )
+        self.downloadJobOptionsDialogue = DownloadJobOptionsDialogue()
 
         self.scroll.add_widget(self.rootVBoxLayout)
 
         self.add_widget(self.scroll)
 
-        self.downloadOptionsDialogue.bind(
+        self.downloadJobOptionsDialogue.bind(
             on_confirm=self._onDownloadOptionsDialogueConfirm
         )
 
@@ -185,7 +179,7 @@ class HomeScreen(Screen):
 
     def _onDownloadPromptButtonRelease(self, instance):
 
-        TEST_URL = "https://youtu.be/Csr_Tj8G7SA?si=uXFNPsKXh5R9sV0b"
+        TEST_URL = "https://youtu.be/nGbsO71K4g8?si=HsWSZ3NQnedkz-54"
 
         """
 https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
@@ -225,21 +219,24 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
 
             if not ok:
                 raise Exception(errorMsg)
-
+            
             def openDialog(dt):
-                self.downloadOptionsDialogue.url = url
-                self.downloadOptionsDialogue.thumbnail =  videoInfo["thumbnail"]
-                self.downloadOptionsDialogue.title = videoInfo["title"]
-                self.downloadOptionsDialogue.channel = videoInfo["channel"]
-                self.downloadOptionsDialogue.availableVideoExts = InfoDict.getAvailableVideoExts(videoInfo)
-                self.downloadOptionsDialogue.availableVideoHeights = InfoDict.getAvailableVideoHeights(videoInfo)
-                self.downloadOptionsDialogue.availableAudioExts = InfoDict.getAvailableAudioExts(videoInfo)
-                self.downloadOptionsDialogue.availableAbrs = InfoDict.getAvailableAudioAbrs(videoInfo)
-                self.downloadOptionsDialogue.open()
+                downloadJob = DownloadJob(
+                    url=url,
+                    thumbnail=videoInfo["thumbnail"],
+                    title=videoInfo["title"],
+                    channel=videoInfo["channel"],
+                    videoExts=InfoDict.getAvailableVideoExts(videoInfo),
+                    videoHeights=InfoDict.getAvailableVideoHeights(videoInfo),
+                    audioExts=InfoDict.getAvailableAudioExts(videoInfo),
+                    abrs=InfoDict.getAvailableAudioAbrs(videoInfo)
+                )
+                self.downloadJobOptionsDialogue.downloadJob = downloadJob
+                self.downloadJobOptionsDialogue.open()
 
             Clock.schedule_once(openDialog)
 
-            print("Opened downloadOptionsDialogue")
+            print("Opened downloadJobOptionsDialogue")
 
         except Exception as e:
             print(str(e))
@@ -259,7 +256,7 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
 
     def _onDownloadOptionsDialogueConfirm(
         self,
-        selectedFormats: SelectedFormats
+        selectedFormats
     ):
         print("_onDownloadOptionsDialogueConfirm called: here is the selected formats")
         pprint(selectedFormats)

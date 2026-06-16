@@ -6,7 +6,7 @@ from kivymd.uix.progressindicator import MDLinearProgressIndicator
 from kivymd.uix.boxlayout import MDBoxLayout
 
 from kivy.uix.image import AsyncImage
-from kivy.metrics import dp
+from kivy.metrics import dp, sp
 from kivy.properties import (
     StringProperty,
     NumericProperty,
@@ -14,7 +14,7 @@ from kivy.properties import (
     ObjectProperty
 )
 
-from DownloadQueue import DownloadJob
+from Download.DownloadJob import DownloadJob
 
 class DownloadJobView(MDCard):
 
@@ -30,7 +30,7 @@ class DownloadJobView(MDCard):
             size_hint=(None, None),
             size_hint_x=1,
             size_hint_y=None,
-            adaptive_height=False,
+            adaptive_height=True,
             **kwargs
         )
 
@@ -43,21 +43,23 @@ class DownloadJobView(MDCard):
         self.bottomBar = MDBoxLayout(
             orientation="vertical",
             size_hint=(1, None),
-            height = dp(60)
+            adaptive_height=True
         )
 
         self.titleLabel = MDLabel(
             size_hint=(1, None),
-            height=dp(22),
+            adaptive_height=True,
             text=self.job.title,
+            font_size=sp(12),
             bold=True
         )
 
         self.channelLabel = MDLabel(
             size_hint=(1, None),
-            height=dp(18),
+            adaptive_height=True,
             text=self.job.channel,
-            theme_text_color="Secondary"
+            font_size=sp(10),
+            theme_text_color="Secondary",
         )
 
         self.progressIndicator = MDLinearProgressIndicator(
@@ -75,20 +77,10 @@ class DownloadJobView(MDCard):
         self.add_widget(self.thumbnailImage)
         self.add_widget(self.bottomBar)
 
-        # self.bind(width=self._updateImageHeight)
-
-        self.bind(width=self._updateSize)
+        self.bind(width=self._updateImageHeight)
 
         if self.job:
             self._on_job_changed(self, self.job)
-
-    def _updateSize(self, *args):
-        image_height = self.width * 9 / 16
-        bottom_height = dp(60)
-
-        self.thumbnailImage.height = image_height
-        self.bottomBar.height = bottom_height
-        self.height = image_height + bottom_height
 
     def _onJobThumbnail(self, instance, value):
         self.thumbnailImage.source = value
@@ -119,7 +111,7 @@ class DownloadJobView(MDCard):
             channel=self._onJobChannel,
             progress=self._onJobProgress,
         )
-    """
+
     def _updateImageHeight(self, *args) -> None:
         self.thumbnailImage.height = self.width * 9 / 16
-    """
+

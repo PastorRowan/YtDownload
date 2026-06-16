@@ -10,7 +10,7 @@ from typing import (
     Set
 )
 
-import config
+from Download.DownloadJob import DownloadJob
 
 class Fragment(TypedDict, total=False):
     """Fragment of a fragmented media."""
@@ -298,7 +298,7 @@ class InfoDict(TypedDict, total=False):
 
 def getAvailableVideoExts(infoDict: InfoDict) -> List[str]:
 
-    ALLOWED_VIDEO_EXTS = config.ALLOWED_VIDEO_EXTS
+    ALLOWED_VIDEO_EXTS = DownloadJob.ALLOWED_VIDEO_EXTS
 
     formats = infoDict.get("formats") or []
 
@@ -313,7 +313,7 @@ def getAvailableVideoExts(infoDict: InfoDict) -> List[str]:
 
 def getAvailableVideoHeights(infoDict: InfoDict) -> List[str]:
 
-    ALLOWED_VIDEO_HEIGHTS = config.ALLOWED_VIDEO_HEIGHTS
+    ALLOWED_VIDEO_HEIGHTS = DownloadJob.ALLOWED_VIDEO_HEIGHTS
 
     formats = infoDict.get("formats") or []
 
@@ -333,7 +333,7 @@ def getAvailableVideoHeights(infoDict: InfoDict) -> List[str]:
 
 def getAvailableAudioExts(infoDict: InfoDict) -> List[str]:
 
-    ALLOWED_AUDIO_EXTS = config.ALLOWED_AUDIO_EXTS
+    ALLOWED_AUDIO_EXTS = DownloadJob.ALLOWED_AUDIO_EXTS
 
     formats = infoDict.get("formats") or []
 
@@ -349,7 +349,7 @@ def getAvailableAudioExts(infoDict: InfoDict) -> List[str]:
 
 def getAvailableAudioAbrs(infoDict: InfoDict) -> list[str]:
 
-    ALLOWED_ABRS = config.ALLOWED_ABRS
+    ALLOWED_ABRS = DownloadJob.ALLOWED_ABRS
 
     formats = infoDict.get("formats") or []
 

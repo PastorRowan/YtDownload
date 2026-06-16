@@ -1,5 +1,5 @@
 
-from typing import TypedDict, NotRequired
+from typing import TypedDict
 
 import yt_dlp
 import config
@@ -20,62 +20,17 @@ from pprint import pprint
 
 import config
 
-import InfoDict
+import Download.InfoDict as InfoDict
 
 from urllib.parse import urlparse
 
 import time
 
-class YTDLPLogger:
+from Download.DownloadJob import DownloadJob
 
-    def debug(self, msg):
-        print(msg)
+from Download import Types
 
-    def warning(self, msg):
-        print(msg)
-
-    def error(self, msg):
-        print(msg)
-
-class ExtractInfoResult(TypedDict):
-    ok: bool
-    error_msg: str | None
-    video_info: InfoDict.InfoDict | None
-
-class DownloadJob(EventDispatcher):
-
-    STATUS_TYPES = (
-        "queued",
-        "downloading",
-        "error",
-        "paused"
-    )
-
-    cancel_event = Event()
-
-    url = StringProperty("")
-
-    fileName = StringProperty(None)
-    downloadType = StringProperty(config.DEFAULT_DOWNLOAD_TYPE, options=config.ALLOWED_DOWNLOAD_TYPES)
-
-    videoExt = StringProperty(None, options=config.ALLOWED_VIDEO_EXTS)
-    videoHeight = StringProperty(None, options=config.ALLOWED_VIDEO_HEIGHTS)
-
-    audioExt = StringProperty(None, options=config.ALLOWED_AUDIO_EXTS)
-    abr = StringProperty(None, options=config.ALLOWED_ABRS)
-
-    title = StringProperty("")
-    channel = StringProperty("")
-    thumbnail = StringProperty("")
-
-    status = StringProperty("queued", options=STATUS_TYPES)
-    error = StringProperty("")
-    progress = NumericProperty(0)
-    speed = NumericProperty(0)
-    eta = NumericProperty(0)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+from Download.helpers import YTDLPLogger
 
 class DownloadCancelled(Exception):
     pass
@@ -94,7 +49,7 @@ class _DownloadQueue(EventDispatcher):
     def _runDownloadJob(
         url: str,
         job: None | DownloadJob = None
-    ) -> ExtractInfoResult:
+    ) -> Types.ExtractInfoResult:
 
         last_update_time = 0.0
         UPDATE_INTERVAL = 1.5
@@ -161,17 +116,18 @@ class _DownloadQueue(EventDispatcher):
             "progress_hooks": [progressHook],
         }
 
-        """
         if job.downloadType == "video":
-            ydl_download_options["format"] = f"bestvideo[height={job.videoHeight}]+bestaudio[acodec={job.audioExt}][abr>={job.abr}]"
+            videoFormat = f"bestvideo[height>={job.videoHeight}]"
+            audioFormat = f"bestaudio[acodec={job.audioExt}][abr>={job.abr}]/best"
+            ydl_download_options["format"] = f"{videoFormat}+{audioFormat}"
+            ydl_download_options["format_sort"] = ["+height", "+abr"]
             ydl_download_options["merge_output_format"] = job.videoExt
         elif job.downloadType == "audio":
-            ydl_download_options["format"] = f"bestaudio[acodec={job.audioExt}][abr>={job.abr}]"
+            ydl_download_options["format"] = f"bestaudio[acodec={job.audioExt}][abr>={job.abr}] -S +abr"
             ydl_download_options["merge_output_format"] = job.audioExt
             ydl_download_options["postprocessors"] = []
         else:
             raise ValueError(f"job.downloadType '{job.downloadType}' is invalid")
-        """
         
         try:
 
@@ -209,7 +165,7 @@ class _DownloadQueue(EventDispatcher):
     def _onDownloadFinished(
         self,
         job: DownloadJob,
-        result: ExtractInfoResult
+        result: Types.ExtractInfoResult
     ) -> None:
 
         if not result["ok"]:
@@ -272,69 +228,5 @@ class _DownloadQueue(EventDispatcher):
 
         if self._currentThread is None:
             self._startNextDownload()
-
-def getVideoMetaData(
-    url: str
-) -> ExtractInfoResult:
-
-    ydl_metadata_options = {
-        # Prevents yt-dlp from using overwritten kivy sys.error object
-        "logger": YTDLPLogger(),
-        "ffmpeg_location": config.FFMPEG_PATH,
-        "js_runtimes": {
-            "deno": {
-                "path": config.DENO_PATH
-            }
-        },
-        "remote_components": [
-            "ejs:github"
-        ],
-        "outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
-        "format": "bestvideo+bestaudio/best",
-        "merge_output_format": "mp4",
-        # leave default for ffmpeg merge for video and audio format
-        # "postprocessors": [],
-        "no_color": True,
-        "progress_hooks": [],
-    }
-
-    try:
-
-        with yt_dlp.YoutubeDL(ydl_metadata_options) as ydl_metadata: 
-
-            videoInfo: InfoDict.InfoDict = ydl_metadata.extract_info(
-                url=url,
-                download=False
-            )
-
-            return {
-                "ok": True,
-                "error_msg": None,
-                "video_info": videoInfo
-            }
-
-    except Exception as e:
-
-        errorMsg = str(e)
-
-        return {
-            "ok": False,
-            "error_msg": errorMsg,
-            "video_info": None
-        }
-
-def isUrlValid(url: str) -> bool:
-
-    try:
-
-        parsed = urlparse(url.strip())
-
-        return (
-            parsed.scheme in ("http", "https")
-            and parsed.netloc != ""
-        )
-
-    except Exception:
-        return False    
 
 DownloadQueue = _DownloadQueue()
