@@ -23,7 +23,7 @@ class YTDLPLogger:
 
 def getVideoMetaData(
     url: str
-) -> Types.ExtractInfoResult:
+) -> Types.ExtractInfoDictResult:
 
     ydl_metadata_options = {
         # Prevents yt-dlp from using overwritten kivy sys.error object
@@ -55,7 +55,7 @@ def getVideoMetaData(
                 download=False
             )
 
-            return Types.ExtractInfoResult(
+            return Types.ExtractInfoDictResult(
                 {
                     "ok": True,
                     "error_msg": None,

@@ -96,7 +96,6 @@ class HomeScreen(Screen):
         self.errorCard = ErrorCard()
 
         self.downloadQueueView = Download.QueueView(
-            size_hint=(1, None),
             queue=Download.Queue
         )
 
@@ -157,9 +156,6 @@ class HomeScreen(Screen):
 
     def _onInputText(self, instance, value):
         self.url = value
-
-    def _onFetchVideoMetaDataThread(self, instance, value):
-        self.loadingIndicator.active = value is not None
 
     def _onDownloadPromptButtonRelease(self, instance):
 

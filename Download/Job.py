@@ -187,7 +187,7 @@ class Job(EventDispatcher):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def run(self) -> Types.ExtractInfoResult:
+    def run(self) -> Types.ExtractInfoDictResult:
 
         if self.url == self.DEFAULT_URL:
             raise Exception(f"Failed to run job: url is not assigned-'{self.url}'")

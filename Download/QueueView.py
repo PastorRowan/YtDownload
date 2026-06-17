@@ -1,8 +1,8 @@
 
-from kivymd.uix.gridlayout import GridLayout
 from kivymd.uix.widget import Widget
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDIcon, MDLabel
+from kivymd.uix.boxlayout import MDBoxLayout
 
 from kivy.properties import (
     StringProperty,
@@ -16,67 +16,81 @@ from kivy.metrics import dp
 import Colors
 
 from .Queue import _Queue
-from .JobView import JobView
+from .JobsView import JobsView
 
-class QueueView(GridLayout):
+class QueueView(MDBoxLayout):
 
     queue: _Queue = ObjectProperty()
 
+    queuedJobsViewLabel: MDLabel
+    queuedJobsView: JobsView
+
+    pausedJobsViewLabel: MDLabel
+    pausedJobsView: JobsView
+
     def __init__(self, **kwargs):
 
-        kwargs.setdefault("size_hint", (1, None))
+        kwargs.setdefault("size_hint", (None, None))
+        kwargs.setdefault("size_hint_x", None)
         kwargs.setdefault("size_hint_y", None)
-        kwargs.setdefault("spacing", 10)
-        kwargs.setdefault("padding", 10)
+        kwargs.setdefault("spacing", dp(12))
 
         super().__init__(
-            orientation="lr-tb",
-            cols=2,
-            col_default_width=dp(275),
+            orientation="vertical",
+            adaptive_height=True,
             **kwargs
         )
 
+        self.queuedJobsViewLabel = MDLabel(text="Queued Downloads")
+        self.queuedJobsView = JobsView(
+            jobs=self.queue.queuedJobs
+        )
+
+        self.pausedJobsViewLabel = MDLabel(text="Paused Downloads")
+        self.pausedJobsView = JobsView(
+            jobs=self.queue.pausedJobs
+        )
+
+        self.add_widget(self.queuedJobsViewLabel)
+        self.add_widget(self.queuedJobsView)
+        self.add_widget(self.pausedJobsViewLabel)
+        self.add_widget(self.pausedJobsView)
+
         self.bind(
-            queue=lambda instance, value: self._onQueueChanged(instance, value)
+            queue=lambda instance, value: self._onQueue(instance, value)
         )
 
         if self.queue:
-            self._onQueueChanged(
+            self._onQueue(
                 self,
                 self.queue
             )
 
-    def _onQueueChanged(self, instance, queue):
+    def _onQueue(self, instance, value):
+
+        queue = value
 
         if not queue:
             return
 
         queue.bind(
-            jobs=self._onJobsChanged
+            queuedJobs=lambda instance, value: self._onQueuedJobs(instance, value),
+            pausedJobs=lambda instance, value: self._onPausedJobs(instance, value),
         )
 
-        self._onJobsChanged(
+        self._onQueuedJobs(
             queue,
-            queue.jobs
+            queue.queuedJobs
+        )
+        self._onPausedJobs(
+            queue,
+            queue.pausedJobs
         )
 
-    def _onJobsChanged(self, instance, jobs):
+    def _onQueuedJobs(self, instance, value):
+        queuedJobs = value
+        self.queuedJobsView.jobs = queuedJobs
 
-        self.clear_widgets()
-
-        numberOfJobs = len(jobs)
-
-        for index, job in enumerate(jobs):
-            jobView = JobView(
-                job=job,
-                # width=dp(400),
-                # height=dp(300),
-                # pos_hint={ "center_x": 0.5, "center_y": 0.5 }
-            )
-            self.add_widget(jobView)
-            if (index == numberOfJobs - 1) and (numberOfJobs % 2 == 1):
-                self.add_widget(
-                    Widget(
-                        size_hint=(1, None)
-                    )
-                )
+    def _onPausedJobs(self, instance, value):
+        pausedJobs = value
+        self.pausedJobsView.jobs = pausedJobs

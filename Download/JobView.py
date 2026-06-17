@@ -45,7 +45,7 @@ class JobView(MDCard):
 
         super().__init__(
             orientation="vertical",
-            size_hint=(None, None),
+            size_hint=(1, None),
             size_hint_x=1,
             size_hint_y=None,
             adaptive_height=True,

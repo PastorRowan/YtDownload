@@ -25,7 +25,9 @@ from .Job import Job
 
 class _Queue(EventDispatcher):
 
-    jobs: list[Job] = ListProperty([])
+    queuedJobs: list[Job] = ListProperty([])
+
+    pausedJobs: list[Job] = ListProperty([])
 
     _currentJob: Job = ObjectProperty(None, allownone=True)
     _currentThread: Thread | None = ObjectProperty(None, allownone=True)
@@ -36,10 +38,10 @@ class _Queue(EventDispatcher):
     def _onDownloadFinished(
         self,
         job: Job,
-        result: Types.ExtractInfoResult
+        result: Types.ExtractInfoDictResult
     ) -> None:
 
-        if job not in self.jobs:
+        if job not in self.queuedJobs:
             return
 
         if not result["ok"]:
@@ -49,16 +51,16 @@ class _Queue(EventDispatcher):
         is_current = (self._currentJob is job)
 
         if job.status in ("cancelled", "finished") and is_current:
-            self.jobs = [j for j in self.jobs if j is not job]
+            self.queuedJobs = [j for j in self.queuedJobs if j is not job]
 
         # wrong we will add paused queue later
         elif job.status == "paused" and is_current:
-            self.jobs = [j for j in self.jobs if j is not job] + [job]
+            self.queuedJobs = [j for j in self.queuedJobs if j is not job] + [job]
 
         self._currentJob = None
         self._currentThread = None
         self._startNextDownload()
-    
+
     def _downloadWorker(
         self,
         job: Job
@@ -75,14 +77,20 @@ class _Queue(EventDispatcher):
 
     def _startNextDownload(self) -> None:
 
-        if self._currentThread is not None or not self.jobs:
+        if (
+            (
+                self._currentThread is not None
+            ) or (
+                not self.queuedJobs
+            )
+        ):
             return
 
-        job = self.jobs[0]
-
-        self._currentJob = job
+        job = self.queuedJobs[0]
 
         job.status = "downloading"
+
+        self._currentJob = job
 
         self._currentThread = Thread(
             target=self._downloadWorker,
@@ -97,23 +105,36 @@ class _Queue(EventDispatcher):
         job: Job
     ) -> None:
 
-        if job in self.jobs:
+        if (
+            (
+                job in self.queuedJobs
+            ) or (
+                job in self.pausedJobs
+            )
+        ):
             return
 
-        self.jobs = self.jobs + [job]
+        self.queuedJobs = self.queuedJobs + [job]
 
         if self._currentThread is None:
             self._startNextDownload()
 
     def cancelJob(self, job: Job):
 
-        if job not in self.jobs:
+        if (
+            (
+                job not in self.queuedJobs
+            ) and (
+                job not in self.pausedJobs
+            )
+        ):
             return
+        
+        job.status = "cancelled"
 
         was_current = (self._currentJob is job)
 
-        self.jobs = [j for j in self.jobs if j is not job]
-        job.status = "cancelled"
+        self.queuedJobs = [j for j in self.queuedJobs if j is not job]
 
         if was_current:
             self._currentJob = None
@@ -122,7 +143,13 @@ class _Queue(EventDispatcher):
    
     def pauseJob(self, job: Job):
 
-        if job not in self.jobs:
+        if (
+            (
+                job not in self.queuedJobs
+            ) or (
+                job in self.pausedJobs
+            )
+        ):
             return
 
         job.status = "paused"
@@ -130,10 +157,10 @@ class _Queue(EventDispatcher):
         was_current = (self._currentJob is job)
 
         # remove from active queue
-        self.jobs = [j for j in self.jobs if j is not job]
+        self.queuedJobs = [j for j in self.queuedJobs if j is not job]
 
-        # push to back of queue
-        self.jobs = self.jobs + [job]
+        # push to back of paused queue
+        self.pausedJobs = self.pausedJobs + [job]
 
         if was_current:
             self._currentJob = None
@@ -141,16 +168,23 @@ class _Queue(EventDispatcher):
             self._startNextDownload()
 
     def resumeJob(self, job: Job):
-        if job not in self.jobs:
-            return
 
-        if job.status != "paused":
+        if (
+            (
+                job in self.queuedJobs
+            ) or (
+                job not in self.pausedJobs
+            )
+        ):
             return
 
         job.status = "queued"
 
-        # already in queue; move it to back
-        self.jobs = [j for j in self.jobs if j is not job] + [job]
+        # remove from paused queue
+        self.pausedJobs  = [j for j in self.pausedJobs if j is not job]
+
+        # push to back of active queue
+        self.queuedJobs = [j for j in self.queuedJobs if j is not job]  + [job]
 
         # if nothing is running, start immediately
         if self._currentJob is None:

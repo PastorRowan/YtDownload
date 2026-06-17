@@ -293,7 +293,7 @@ class InfoDict(TypedDict, total=False):
     _format_sort_fields: Optional[List[str]]  # Fields for sorting formats
     __post_extractor: Optional[Any]   # Function to call after extraction
 
-class ExtractInfoResult(TypedDict):
+class ExtractInfoDictResult(TypedDict):
     ok: bool
     error_msg: str | None
     info_dict: InfoDict | None
