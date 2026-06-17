@@ -46,17 +46,14 @@ from kivy.properties import (
     ListProperty
 )
 
-from Download.DownloadJobVideoFormatDialogue import DownloadJobVideoFormatDialogue
-from Download.DownloadJobAudioFormatDialogue import DownloadJobAudioFormatDialogue
+from .Job import Job
+from .Queue import Queue
+from .JobVideoFormatDialogue import JobVideoFormatDialogue
+from .JobAudioFormatDialogue import JobAudioFormatDialogue
 
-from Download.DownloadJob import (
-    DownloadJob
-)
-from Download.DownloadQueue import DownloadQueue
+class JobOptionsDialogue(MDDialog):
 
-class DownloadJobOptionsDialogue(MDDialog):
-
-    downloadJob: DownloadJob = ObjectProperty(DownloadJob())
+    job: Job = ObjectProperty(Job())
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -87,7 +84,7 @@ class DownloadJobOptionsDialogue(MDDialog):
         self.fileNameFieldVBox.add_widget(
             MDTextField(
                 size_hint=(1, None),
-                text=self.downloadJob.fileName,
+                text=self.job.fileName,
                 hint_text="File Name",
                 multiline=False
             )
@@ -228,26 +225,26 @@ class DownloadJobOptionsDialogue(MDDialog):
         )
         self.add_widget(self.container)
 
-        self.downloadJobVideoFormatDialogue = DownloadJobVideoFormatDialogue(
-            downloadJob=self.downloadJob
+        self.jobVideoFormatDialogue = JobVideoFormatDialogue(
+            job=self.job
         )
-        self.downloadJobVideoFormatDialogue.bind(
-            on_confirm=lambda downloadJobVideoFormatDialogue, videoFormat:
-                self._onVideoFormatConfirmed(downloadJobVideoFormatDialogue, videoFormat)
-        )
-
-        self.downloadJobAudioFormatDialogue = DownloadJobAudioFormatDialogue(
-            downloadJob=self.downloadJob
-        )
-        self.downloadJobAudioFormatDialogue.bind(
-            on_confirm=lambda downloadJobAudioFormatDialogue, audioFormat:
-                self._onAudioFormatConfirmed(downloadJobAudioFormatDialogue, audioFormat)
+        self.jobVideoFormatDialogue.bind(
+            on_confirm=lambda jobVideoFormatDialogue, videoFormat:
+                self._onVideoFormatConfirmed(jobVideoFormatDialogue, videoFormat)
         )
 
-        self.downloadJob.bind(
+        self.jobAudioFormatDialogue = JobAudioFormatDialogue(
+            job=self.job
+        )
+        self.jobAudioFormatDialogue.bind(
+            on_confirm=lambda jobAudioFormatDialogue, audioFormat:
+                self._onAudioFormatConfirmed(jobAudioFormatDialogue, audioFormat)
+        )
+
+        self.job.bind(
             downloadType=lambda instance, value: self._onDownloadJobDownloadType(instance, value)
         )
-        self._onDownloadJobDownloadType(self, self.downloadJob.downloadType)
+        self._onDownloadJobDownloadType(self, self.job.downloadType)
 
     def _onDownloadJobDownloadType(self, instance, value):
         if value == "video":
@@ -265,10 +262,10 @@ class DownloadJobOptionsDialogue(MDDialog):
         print(self.availableVideoHeights)
         print(self.availableAudioExts)
         print(self.availableAbrs)
-        self.downloadJob.downloadType = "video"
+        self.job.downloadType = "video"
 
     def _onAudioDownloadTypeChipRelease(self):
-        self.downloadJob.downloadType = "audio"
+        self.job.downloadType = "audio"
 
     def _onVideoFormatChipRelease(self):
         self.selectVideoFormatDialogue.open()
@@ -278,22 +275,22 @@ class DownloadJobOptionsDialogue(MDDialog):
 
     def _onVideoFormatConfirmed(
         self,
-        downloadJobVideoFormatDialogue,
+        jobVideoFormatDialogue,
         videoFormat
     ):
-        downloadJobVideoFormatDialogue.dismiss()
+        jobVideoFormatDialogue.dismiss()
 
     def _onAudioFormatConfirmed(
         self,
-        downloadJobAudioFormatDialogue,
+        jobAudioFormatDialogue,
         audioFormat
     ):
-        downloadJobAudioFormatDialogue.dismiss()
+        jobAudioFormatDialogue.dismiss()
 
     def _on_download_options_confirmed(self):
         print("_onDownloadOptionsConfirmed: created download job and added it to download queue")
 
-        DownloadQueue.addDownloadJob(self.downloadJob)
+        Queue.addJob(self.job)
 
         self.dismiss()
 

@@ -16,9 +16,6 @@ from kivy.core.window import Window
 from screens.HomeScreen.VideoInfoCard import VideoInfoCard
 from screens.HomeScreen.TopBarHBoxLayout import TopBarHBoxLayout
 from screens.HomeScreen.ErrorCard import ErrorCard
-from Download.DownloadJobOptionsDialogue import (
-    DownloadJobOptionsDialogue
-)
 
 from kivy.clock import Clock
 from kivy.metrics import dp
@@ -27,15 +24,7 @@ from threading import Thread
 
 import Colors
 
-import CustomGraphics
-
-from Download.DownloadJob import DownloadJob
-from Download.DownloadQueue import DownloadQueue
-from Download.helpers import getVideoMetaData, isUrlValid
-
-from Download.DownloadQueueView import DownloadQueueView
-
-import Download.InfoDict as InfoDict
+import Download
 
 Window.clearcolor = Colors.white
 
@@ -52,7 +41,6 @@ import config
 class HomeScreen(Screen):
 
     url = StringProperty("")
-    fetchVideoMetaDataThread = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -107,9 +95,9 @@ class HomeScreen(Screen):
 
         self.errorCard = ErrorCard()
 
-        self.downloadQueueView = DownloadQueueView(
+        self.downloadQueueView = Download.QueueView(
             size_hint=(1, None),
-            downloadQueue=DownloadQueue
+            queue=Download.Queue
         )
 
         self.downloadPromptButton = MDFabButton(
@@ -157,7 +145,7 @@ class HomeScreen(Screen):
             )
         )
 
-        self.downloadJobOptionsDialogue = DownloadJobOptionsDialogue()
+        self.downloadJobOptionsDialogue = Download.JobOptionsDialogue()
 
         self.scroll.add_widget(self.rootVBoxLayout)
 
@@ -165,10 +153,6 @@ class HomeScreen(Screen):
 
         self.downloadJobOptionsDialogue.bind(
             on_confirm=self._onDownloadOptionsDialogueConfirm
-        )
-
-        self.bind(
-            fetchVideoMetaDataThread=self._onFetchVideoMetaDataThread
         )
 
     def _onInputText(self, instance, value):
@@ -189,74 +173,19 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
 
         url = TEST_URL
 
-        if not isUrlValid(url):
+        if Download.helpers.isUrlValid(url) is False:
             self.errorCard.title = "Url is invalid"
             self.errorCard.body = f"Url '{url}' is invalid"
             self.errorCard.show = True
             print(f"Url '{url}' is invalid")
-        elif self.fetchVideoMetaDataThread is None:
-            print("Starting fetchVideoMetaDataThread")
-            self.fetchVideoMetaDataThread = Thread(
-                target=self._fetchVideoMetaData,
-                args=(url,),
-                daemon=True
-            )
-            self.fetchVideoMetaDataThread.start()
-        else:
-            print("Extracting metadata already in progress")
+            return
 
-    def _fetchVideoMetaData(self, url):
-
-        try:
-
-            print("Starting _fetchVideoMetaData")
-
-            extractInfoResult = getVideoMetaData(url)
-
-            ok = extractInfoResult["ok"]
-            errorMsg = extractInfoResult["error_msg"]
-            videoInfo = extractInfoResult["video_info"]
-
-            if not ok:
-                raise Exception(errorMsg)
-            
-            def openDialog(dt):
-                downloadJob = DownloadJob(
-                    url=url,
-                    thumbnail=videoInfo["thumbnail"],
-                    title=videoInfo["title"],
-                    channel=videoInfo["channel"],
-                    videoExts=InfoDict.getAvailableVideoExts(videoInfo),
-                    videoHeights=InfoDict.getAvailableVideoHeights(videoInfo),
-                    audioExts=InfoDict.getAvailableAudioExts(videoInfo),
-                    abrs=InfoDict.getAvailableAudioAbrs(videoInfo)
-                )
-                self.downloadJobOptionsDialogue.downloadJob = downloadJob
-                self.downloadJobOptionsDialogue.open()
-
-            Clock.schedule_once(openDialog)
-
-            print("Opened downloadJobOptionsDialogue")
-
-        except Exception as e:
-            print(str(e))
-
-            def show_error(dt):
-                self.errorCard.title = "Metadata error"
-                self.errorCard.body = str(e)
-                self.errorCard.show = True
-
-            Clock.schedule_once(show_error)
-
-        finally:
-            print("Ending _fetchVideoMetaData")
-            def setFetchVideoMetaDataThread(dt):
-                self.fetchVideoMetaDataThread = None
-            Clock.schedule_once(setFetchVideoMetaDataThread)
+        job = Download.Job(url=url)
+        self.downloadJobOptionsDialogue.job = job
+        self.downloadJobOptionsDialogue.open()
 
     def _onDownloadOptionsDialogueConfirm(
         self,
         selectedFormats
     ):
-        print("_onDownloadOptionsDialogueConfirm called: here is the selected formats")
-        pprint(selectedFormats)
+        print("_onDownloadOptionsDialogueConfirm called: here is the selected formats", selectedFormats)

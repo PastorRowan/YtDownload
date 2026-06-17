@@ -17,14 +17,12 @@ from kivymd.uix.button import (
     MDButton,
     MDButtonText
 )
-
 from kivymd.uix.list import (
     MDListItem,
     MDListItemSupportingText,
     MDListItemLeadingIcon,
     MDListItemTrailingIcon
 )
-
 from kivymd.uix.menu import MDDropdownMenu
 
 from kivy.clock import Clock
@@ -35,17 +33,15 @@ from kivy.properties import (
     ListProperty
 )
 
-from Download.DownloadJob import (
-    DownloadJob
-)
+from .Job import Job
 
 class DropDownMenuItem(TypedDict):
     text: str
     on_release: Callable[[], None]
 
-class DownloadJobVideoFormatDialogue(MDDialog):
+class JobVideoFormatDialogue(MDDialog):
 
-    downloadJob: DownloadJob = ObjectProperty(DownloadJob())
+    job: Job = ObjectProperty(Job())
 
     selectedVideoExtIndex: int = NumericProperty(0)
     _videoExtDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
@@ -60,7 +56,7 @@ class DownloadJobVideoFormatDialogue(MDDialog):
         )
 
         self.videoExtDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.downloadJob.videoExts[self.selectedVideoExtIndex]
+            text=self.job.videoExts[self.selectedVideoExtIndex]
         )
 
         self.videoExtDropDownMenuButton = MDListItem(
@@ -84,7 +80,7 @@ class DownloadJobVideoFormatDialogue(MDDialog):
         )
 
         self.videoHeightDropDownMenuButtonText = MDListItemSupportingText(
-            text=f"{self.downloadJob.videoHeights[self.selectedVideoHeightIndex]}p"
+            text=f"{self.job.videoHeights[self.selectedVideoHeightIndex]}p"
         )
 
         self.videoHeightDropDownMenuButton = MDListItem(
@@ -159,7 +155,7 @@ class DownloadJobVideoFormatDialogue(MDDialog):
 
         )
 
-        self.downloadJob.bind(
+        self.job.bind(
             videoExts=lambda instance, value: self._onJobVideoExts(instance, value),
             videoHeights=lambda instance, value: self._onJobVideoHeights(instance, value)
         )
@@ -169,8 +165,8 @@ class DownloadJobVideoFormatDialogue(MDDialog):
             selectedVideoHeightIndex=lambda instance, value: self._onSelectedVideoHeightIndex(instance, value)
         )
 
-        self._onJobVideoExts(self, self.downloadJob.videoExts)
-        self._onJobVideoHeights(self, self.downloadJob.videoHeights)
+        self._onJobVideoExts(self, self.job.videoExts)
+        self._onJobVideoHeights(self, self.job.videoHeights)
 
         self._onSelectedVideoExtIndex(self, self.selectedVideoExtIndex)
         self._onSelectedVideoHeightIndex(self, self.selectedVideoHeightIndex)
@@ -187,7 +183,7 @@ class DownloadJobVideoFormatDialogue(MDDialog):
             self.selectedVideoExtIndex = index
             videoExtsDropDownMenu.dismiss()
 
-        for index, videoExt in enumerate(self.downloadJob.videoExts):
+        for index, videoExt in enumerate(self.job.videoExts):
             self._videoExtDropDownMenuItems.append({
                 "text": f"{videoExt}kbps",
                 "on_release": lambda i=index: _selectVideoExtIndex(i)
@@ -203,18 +199,18 @@ class DownloadJobVideoFormatDialogue(MDDialog):
             self.selectedVideoHeightIndex = index
             videoHeightsDropDownMenu.dismiss()
 
-        for index, videoHeight in enumerate(self.downloadJob.videoHeights):
+        for index, videoHeight in enumerate(self.job.videoHeights):
             self._videoHeightDropDownMenuItems.append({
                 "text": f"{videoHeight}kbps",
                 "on_release": lambda i=index: _selectVideoHeightIndex(i)
             })
 
     def _onSelectedVideoExtIndex(self, instance, value):
-        videoExt = self.downloadJob.videoExts[value]
+        videoExt = self.job.videoExts[value]
         self.videoExtDropDownMenuButtonText.text = videoExt
 
     def _onSelectedVideoHeightIndex(self, instance, value):
-        videoHeight = self.downloadJob.videoExts[value]
+        videoHeight = self.job.videoExts[value]
         self.videoHeightDropDownMenuButtonText.text = videoHeight
 
     def _onVideoExtDropDownMenuButtonRelease(self):

@@ -22,12 +22,12 @@ from kivy.properties import (
 
 from MDIconButtonCustom import MDIconButtonCustom
 
-from Download.DownloadJob import DownloadJob
+from .Job import Job
+from .Queue import Queue
 
-class DownloadJobView(MDCard):
+class JobView(MDCard):
 
-    job: DownloadJob = ObjectProperty(None)
-
+    job: Job = ObjectProperty(Job())
     thumbnailContainer: MDFloatLayout
     thumbnailImage: AsyncImage
     cancelIconButton: MDButtonIcon
@@ -89,7 +89,8 @@ class DownloadJobView(MDCard):
                 "center_x": 0.5,
                 "center_y": 0.5
             },
-            md_bg_color=(0, 0, 0, 0.25)
+            md_bg_color=(0, 0, 0, 0.25),
+            on_release=lambda dt: self._onPausePlayIconButtonRelease(dt)
         )
 
         self.etaLabel = MDLabel(
@@ -145,7 +146,7 @@ class DownloadJobView(MDCard):
         self.add_widget(self.thumbnailContainer)
         self.add_widget(self.bottomBar)
 
-        self.bind(width=lambda instance, value: self._updateThumbnailContainerHeight(instance, value))
+        self.bind(width=lambda instance, value: self._onWidth(instance, value))
 
         """
         self.bind(width=self._updateImageHeight)
@@ -197,12 +198,12 @@ class DownloadJobView(MDCard):
         match newStatus:
             case "downloading":
                 print("Downloading")
+                self.pausePlayIconButton.icon = "pause-circle-outline"
             case "paused":
                 print("Paused")
-            case "cancelled":
-                print("Cancelled")
+                self.pausePlayIconButton.icon = "play-circle-outline"
             case _:
-                print("Unknown")
+                print("Not implementation for status: ", value)
 
     def _onJobChanged(self, instance, job):
 
@@ -227,7 +228,17 @@ class DownloadJobView(MDCard):
         self._onJobEta(instance, job.eta)
         self._onJobSpeed(instance, job.speed)
 
-    def _updateThumbnailContainerHeight(self, *args) -> None:
+    def _onPausePlayIconButtonRelease(self, dt: int) -> None:
+
+        if (
+            self.job.status == "downloading" or
+            self.job.status == "queued"
+        ):
+            Queue.pauseJob(self.job)
+        elif self.job.status == "paused":
+            Queue.resumeJob(self.job)
+
+    def _onWidth(self, *args) -> None:
         height = self.width * 9 / 16
 
         self.thumbnailContainer.height = height

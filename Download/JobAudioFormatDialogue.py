@@ -1,15 +1,7 @@
 
 from typing import (
     TypedDict,
-    Optional,
-    List,
-    Union,
-    Dict,
-    Any,
-    Literal,
-    Set,
-    Callable,
-    Any
+    Callable
 )
 
 from kivymd.uix.dialog import (
@@ -25,14 +17,12 @@ from kivymd.uix.button import (
     MDButton,
     MDButtonText
 )
-
 from kivymd.uix.list import (
     MDListItem,
     MDListItemSupportingText,
     MDListItemLeadingIcon,
     MDListItemTrailingIcon
 )
-
 from kivymd.uix.menu import MDDropdownMenu
 
 from kivy.clock import Clock
@@ -43,17 +33,15 @@ from kivy.properties import (
     ListProperty
 )
 
-from Download.DownloadJob import (
-    DownloadJob
-)
+from .Job import Job
 
 class DropDownMenuItem(TypedDict):
     text: str
     on_release: Callable[[], None]
 
-class DownloadJobAudioFormatDialogue(MDDialog):
+class JobAudioFormatDialogue(MDDialog):
 
-    downloadJob: DownloadJob = ObjectProperty(DownloadJob())
+    job: Job = ObjectProperty(Job())
 
     selectedAudioExtIndex: int = NumericProperty(0)
     _audioExtDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
@@ -68,7 +56,7 @@ class DownloadJobAudioFormatDialogue(MDDialog):
         )
 
         self.audioExtDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.downloadJob.audioExts[self.selectedAudioExtIndex]
+            text=self.job.audioExts[self.selectedAudioExtIndex]
         )
 
         self.audioExtDropDownMenuButton = MDListItem(
@@ -92,7 +80,7 @@ class DownloadJobAudioFormatDialogue(MDDialog):
         )
 
         self.audioAbrDropDownMenuButtonText = MDListItemSupportingText(
-            text=f"{self.downloadJob.abrs[self.selectedAudioAbrIndex]}kbps"
+            text=f"{self.job.abrs[self.selectedAudioAbrIndex]}kbps"
         )
 
         self.audioAbrDropDownMenuButton = MDListItem(
@@ -167,7 +155,7 @@ class DownloadJobAudioFormatDialogue(MDDialog):
 
         )
 
-        self.downloadJob.bind(
+        self.job.bind(
             audioExts=lambda instance, value: self._onJobAudioExts(instance, value),
             abrs=lambda instance, value: self._onJobAudioAbrs(instance, value)
         )
@@ -177,8 +165,8 @@ class DownloadJobAudioFormatDialogue(MDDialog):
             selectedAudioAbrIndex=lambda instance, value: self._onSelectedAudioAbrIndex(instance, value)
         )
 
-        self._onJobAudioExts(self, self.downloadJob.audioExts)
-        self._onJobAudioAbrs(self, self.downloadJob.abrs)
+        self._onJobAudioExts(self, self.job.audioExts)
+        self._onJobAudioAbrs(self, self.job.abrs)
 
         self._onSelectedAudioExtIndex(self, self.selectedAudioExtIndex)
         self._onSelectedAudioAbrIndex(self, self.selectedAudioAbrIndex)
@@ -195,7 +183,7 @@ class DownloadJobAudioFormatDialogue(MDDialog):
             self.selectedAudioExtIndex = index
             audioExtsDropDownMenu.dismiss()
 
-        for index, audioExt in enumerate(self.downloadJob.abrs):
+        for index, audioExt in enumerate(self.job.abrs):
             self._audioExtDropDownMenuItems.append({
                 "text": f"{audioExt}kbps",
                 "on_release": lambda i=index: _selectAudioExtIndex(i)
@@ -211,18 +199,18 @@ class DownloadJobAudioFormatDialogue(MDDialog):
             self.selectedAudioAbrIndex = index
             audioAbrDropDownMenu.dismiss()
 
-        for index, audioAbr in enumerate(self.downloadJob.audioExts):
+        for index, audioAbr in enumerate(self.job.audioExts):
             self._audioAbrDropDownMenuItems.append({
                 "text": f"{audioAbr}kbps",
                 "on_release": lambda i=index: _selectAudioAbrIndex(i)
             })
 
     def _onSelectedAudioExtIndex(self, instance, value):
-        audioExt = self.downloadJob.audioExts[value]
+        audioExt = self.job.audioExts[value]
         self.audioExtDropDownMenuButtonText.text = audioExt
 
     def _onSelectedAudioAbrIndex(self, instance, value) -> None:
-        abr = self.downloadJob.abrs[value]
+        abr = self.job.abrs[value]
         self.audioAbrDropDownMenuButtonText.text = f"{abr}kbps"
 
     def _onAudioExtDropDownMenuButtonRelease(self):
@@ -262,8 +250,8 @@ class DownloadJobAudioFormatDialogue(MDDialog):
 
     def _on_confirm(self):
 
-        selectedExt = self.downloadJob.audioExts[self.selectedAudioExtIndex]
-        selectedAbr = self.downloadJob.abrs[self.selectedAudioAbrIndex]
+        selectedExt = self.job.audioExts[self.selectedAudioExtIndex]
+        selectedAbr = self.job.abrs[self.selectedAudioAbrIndex]
 
         self.dispatch(
             "on_confirm",

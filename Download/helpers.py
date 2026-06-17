@@ -4,11 +4,11 @@ import yt_dlp
 
 import config
 
-import Download.InfoDict as InfoDict
-
 from urllib.parse import urlparse
 
-from Download import Types
+from . import (
+    Types
+)
 
 class YTDLPLogger:
 
@@ -50,16 +50,18 @@ def getVideoMetaData(
 
         with yt_dlp.YoutubeDL(ydl_metadata_options) as ydl_metadata: 
 
-            videoInfo: InfoDict.InfoDict = ydl_metadata.extract_info(
+            infoDict: Types.InfoDict = ydl_metadata.extract_info(
                 url=url,
                 download=False
             )
 
-            return {
-                "ok": True,
-                "error_msg": None,
-                "video_info": videoInfo
-            }
+            return Types.ExtractInfoResult(
+                {
+                    "ok": True,
+                    "error_msg": None,
+                    "info_dict": infoDict
+                }
+            )
 
     except Exception as e:
 
@@ -68,7 +70,7 @@ def getVideoMetaData(
         return {
             "ok": False,
             "error_msg": errorMsg,
-            "video_info": None
+            "info_dict": None
         }
 
 def isUrlValid(url: str) -> bool:

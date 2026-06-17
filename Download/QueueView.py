@@ -4,14 +4,6 @@ from kivymd.uix.widget import Widget
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDIcon, MDLabel
 
-import Colors
-
-from Download.DownloadQueue import (
-    _DownloadQueue
-)
-
-from Download.DownloadJobView import DownloadJobView
-
 from kivy.properties import (
     StringProperty,
     NumericProperty,
@@ -21,9 +13,14 @@ from kivy.properties import (
 )
 from kivy.metrics import dp
 
-class DownloadQueueView(GridLayout):
+import Colors
 
-    downloadQueue: _DownloadQueue = ObjectProperty()
+from .Queue import _Queue
+from .JobView import JobView
+
+class QueueView(GridLayout):
+
+    queue: _Queue = ObjectProperty()
 
     def __init__(self, **kwargs):
 
@@ -40,16 +37,16 @@ class DownloadQueueView(GridLayout):
         )
 
         self.bind(
-            downloadQueue=self._onDownloadQueueChanged
+            queue=lambda instance, value: self._onQueueChanged(instance, value)
         )
 
-        if self.downloadQueue:
-            self._onDownloadQueueChanged(
+        if self.queue:
+            self._onQueueChanged(
                 self,
-                self.downloadQueue
+                self.queue
             )
 
-    def _onDownloadQueueChanged(self, instance, queue):
+    def _onQueueChanged(self, instance, queue):
 
         if not queue:
             return
@@ -70,7 +67,7 @@ class DownloadQueueView(GridLayout):
         numberOfJobs = len(jobs)
 
         for index, job in enumerate(jobs):
-            jobView = DownloadJobView(
+            jobView = JobView(
                 job=job,
                 # width=dp(400),
                 # height=dp(300),
