@@ -303,7 +303,19 @@ class Job(EventDispatcher):
                     "error_msg": None,
                     "info_dict": infoDict
                 }
-
+            
+        except Paused:
+            return {
+                "ok": True,
+                "error_msg": None,
+                "info_dict": None
+            }
+        except Cancelled:
+            return {
+                "ok": True,
+                "error_msg": None,
+                "info_dict": None
+            }
         except Exception as e:
 
             errorMsg = str(e)

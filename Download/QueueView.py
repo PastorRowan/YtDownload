@@ -5,11 +5,7 @@ from kivymd.uix.label import MDIcon, MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 
 from kivy.properties import (
-    StringProperty,
-    NumericProperty,
-    BooleanProperty,
-    ObjectProperty,
-    ListProperty
+    ObjectProperty
 )
 from kivy.metrics import dp
 
@@ -30,8 +26,8 @@ class QueueView(MDBoxLayout):
 
     def __init__(self, **kwargs):
 
-        kwargs.setdefault("size_hint", (None, None))
-        kwargs.setdefault("size_hint_x", None)
+        kwargs.setdefault("size_hint", (1, None))
+        kwargs.setdefault("size_hint_x", 1)
         kwargs.setdefault("size_hint_y", None)
         kwargs.setdefault("spacing", dp(12))
 
@@ -89,8 +85,16 @@ class QueueView(MDBoxLayout):
 
     def _onQueuedJobs(self, instance, value):
         queuedJobs = value
+        if len(queuedJobs) <= 0:
+            self.queuedJobsViewLabel.opacity = 0
+        else:
+            self.queuedJobsViewLabel.opacity = 1
         self.queuedJobsView.jobs = queuedJobs
 
     def _onPausedJobs(self, instance, value):
         pausedJobs = value
+        if len(pausedJobs) <= 0:
+            self.pausedJobsViewLabel.opacity = 0
+        else:
+            self.pausedJobsViewLabel.opacity = 1
         self.pausedJobsView.jobs = pausedJobs

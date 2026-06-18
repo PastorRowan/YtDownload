@@ -1,6 +1,6 @@
 
 from kivymd.app import MDApp
-from kivy.uix.screenmanager import ScreenManager
+from kivymd.uix.screenmanager import MDScreenManager
 
 from screens.HomeScreen.HomeScreen import HomeScreen
 from screens.SettingsScreen.SettingsScreen import SettingsScreen
@@ -14,7 +14,7 @@ class Application(MDApp):
         self.theme_cls.text_color = Colors.black
         self.theme_cls.icon_color = Colors.black
 
-        sm = ScreenManager()
+        sm = MDScreenManager()
 
         sm.add_widget(HomeScreen(name="home"))
         # must add later

@@ -29,51 +29,11 @@ class _Queue(EventDispatcher):
 
     pausedJobs: list[Job] = ListProperty([])
 
-    _currentJob: Job = ObjectProperty(None, allownone=True)
+    _currentJob: Job | None = ObjectProperty(None, allownone=True)
     _currentThread: Thread | None = ObjectProperty(None, allownone=True)
 
     def __init__(self):
         pass
-
-    def _onDownloadFinished(
-        self,
-        job: Job,
-        result: Types.ExtractInfoDictResult
-    ) -> None:
-
-        if job not in self.queuedJobs:
-            return
-
-        if not result["ok"]:
-            job.status = "error"
-            job.error = result["error_msg"] or ""
-
-        is_current = (self._currentJob is job)
-
-        if job.status in ("cancelled", "finished") and is_current:
-            self.queuedJobs = [j for j in self.queuedJobs if j is not job]
-
-        # wrong we will add paused queue later
-        elif job.status == "paused" and is_current:
-            self.queuedJobs = [j for j in self.queuedJobs if j is not job] + [job]
-
-        self._currentJob = None
-        self._currentThread = None
-        self._startNextDownload()
-
-    def _downloadWorker(
-        self,
-        job: Job
-    ) -> None:
-
-        result = job.run()
-
-        Clock.schedule_once(
-            lambda dt: self._onDownloadFinished(
-                job,
-                result
-            )
-        )
 
     def _startNextDownload(self) -> None:
 
@@ -99,6 +59,42 @@ class _Queue(EventDispatcher):
         )
 
         self._currentThread.start()
+
+    def _downloadWorker(
+        self,
+        job: Job
+    ) -> None:
+
+        result = job.run()
+
+        Clock.schedule_once(
+            lambda dt: self._onDownloadFinished(
+                job,
+                result
+            )
+        )
+
+    def _onDownloadFinished(
+        self,
+        job: Job,
+        result: Types.ExtractInfoDictResult
+    ) -> None:
+
+        if job not in self.queuedJobs:
+            return
+
+        if not result["ok"]:
+            job.status = "error"
+            job.error = result["error_msg"] or ""
+
+        is_current = (self._currentJob is job)
+
+        if job.status in ("cancelled", "finished") and is_current:
+            self.queuedJobs = [j for j in self.queuedJobs if j is not job]
+
+        self._currentJob = None
+        self._currentThread = None
+        self._startNextDownload()
 
     def addJob(
         self,
@@ -169,6 +165,8 @@ class _Queue(EventDispatcher):
 
     def resumeJob(self, job: Job):
 
+        print("Resuming job")
+
         if (
             (
                 job in self.queuedJobs
@@ -176,6 +174,7 @@ class _Queue(EventDispatcher):
                 job not in self.pausedJobs
             )
         ):
+            print("Job not resumed because it is in queued jobs already or it is not in paused jobs")
             return
 
         job.status = "queued"

@@ -53,18 +53,30 @@ def set_ellipse_bg(
 
     with widget.canvas.before:
 
-        Color(r, g, b, a)  # Ellipse color
-        widget.bg_ellipse = Ellipse(pos=widget.pos, size=widget.size)
+        widget.bg_ellipse_color = Color(r, g, b, a)
+        widget.bg_ellipse = Ellipse()
 
-        def update_circle(
-            instance,
-            value
-        ):
-            instance.bg_ellipse.pos = instance.pos
-            instance.bg_ellipse.size = instance.size
+        def _update_ellipse(*args):
+            w, h = widget.size
+
+            # ellipse size = widget size (you can change this if needed)
+            ew, eh = w, h
+
+            # TRUE center alignment
+            widget.bg_ellipse.pos = (
+                widget.center_x - ew * 0.75,
+                widget.center_y
+            )
+
+            widget.bg_ellipse.size = (ew, eh)
 
         # listen to size and position changes
-        widget.bind(pos=update_circle, size=update_circle)
+        widget.bind(
+            pos=lambda instance, value: _update_ellipse(instance, value),
+            size=lambda instance, value: _update_ellipse(instance, value)
+        )
+
+        _update_ellipse()
 
 def set_border(
     widget: Widget,
@@ -115,22 +127,30 @@ def set_border(
         # listen to size and position changes
         widget.bind(pos=update_border, size=update_border)
 
-def set_max_width(
+def set_max_width( 
     widget,
-    reference_widget,
     max_width,
-    margin
+    margin=0
 ):
 
-    # IMPORTANT: you take control of width
     widget.size_hint_x = None
 
-    def update(*args):
-        widget.width = min(reference_widget.width - margin, max_width)
+    def update(*_):
+        if not widget.parent:
+            return
 
-    reference_widget.bind(size=update)
+        available = widget.parent.width - margin
+        available = max(0, available)
 
-    update()
+        widget.width = min(available, max_width)
+
+    def on_parent(instance, value):
+        parent = value
+        if parent:
+            parent.bind(size=update)
+            update()
+
+    widget.bind(parent=on_parent)
 
 def set_max_height(
     widget,

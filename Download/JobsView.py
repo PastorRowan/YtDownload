@@ -5,8 +5,6 @@ from typing import (
 
 from kivymd.uix.gridlayout import GridLayout
 from kivymd.uix.widget import Widget
-from kivymd.uix.card import MDCard
-from kivymd.uix.label import MDIcon, MDLabel
 
 from kivy.properties import (
     StringProperty,
@@ -24,15 +22,17 @@ from .JobView import JobView
 
 class JobsView(GridLayout):
 
-    jobs: List[Job] = ListProperty()
+    jobs: List[Job] = ListProperty([])
 
     def __init__(self, **kwargs):
 
-        kwargs.setdefault("size_hint", (None, None))
+        kwargs.setdefault("size_hint", (1, None))
+        kwargs.setdefault("size_hint_x", 1)
         kwargs.setdefault("size_hint_y", None)
-        kwargs.setdefault("size_hint_x", None)
         kwargs.setdefault("spacing", dp(12))
         kwargs.setdefault("padding", dp(12))
+        kwargs.setdefault("row_force_default", False)
+        kwargs.setdefault("col_force_default", False)
 
         super().__init__(
             orientation="lr-tb",
@@ -43,18 +43,13 @@ class JobsView(GridLayout):
 
         self.bind(
             jobs=lambda instance, value: self._onJobsChanged(instance, value),
-            minimum_height=self.setter("height")
         )
 
-        if self.jobs:
-            self._onJobsChanged(
-                self,
-                self.jobs
-            )
+        self._onJobsChanged(self, self.jobs)
 
     def _onJobsChanged(self, instance, value):
 
-        jobs = value
+        jobs: List[Job] = value            
 
         self.clear_widgets()
 
@@ -62,10 +57,7 @@ class JobsView(GridLayout):
 
         for index, job in enumerate(jobs):
             jobView = JobView(
-                job=job,
-                # width=dp(400),
-                # height=dp(300),
-                # pos_hint={ "center_x": 0.5, "center_y": 0.5 }
+                job=job
             )
             self.add_widget(jobView)
             if (index == numberOfJobs - 1) and (numberOfJobs % 2 == 1):

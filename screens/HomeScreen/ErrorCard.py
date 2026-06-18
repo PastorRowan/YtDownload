@@ -4,8 +4,7 @@ from kivymd.uix.widget import Widget
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDIcon, MDLabel
 
-import Colors
-
+from kivy.metrics import dp
 from kivy.properties import (
     NumericProperty,
     StringProperty,
@@ -13,16 +12,20 @@ from kivy.properties import (
     BooleanProperty
 )
 
+import Colors
+
+DEFAULT_HEIGHT = dp(200)
+
 class ErrorCard(MDCard):
     
-    title = StringProperty("")
-    body = StringProperty("")
-    show = BooleanProperty(False)
+    title: str = StringProperty("")
+    body: str = StringProperty("")
+    show: bool = BooleanProperty(False)
 
     def __init__(self, **kwargs):
 
         kwargs.setdefault("size_hint", (1, None))
-        kwargs.setdefault("height", 200)
+        kwargs.setdefault("height", DEFAULT_HEIGHT)
         kwargs.setdefault("opacity", 0)
         kwargs.setdefault("padding", 12)
         kwargs.setdefault("md_bg_color", Colors.errorRedBackground)
@@ -85,15 +88,14 @@ class ErrorCard(MDCard):
         )
 
         self.bind(
-            title=lambda instance, value: self._onTitle(instance, value)
-        )
-        self.bind(
-            body=lambda instance, value: self._onBody(instance, value)
-        )
-
-        self.bind(
+            title=lambda instance, value: self._onTitle(instance, value),
+            body=lambda instance, value: self._onBody(instance, value),
             show=lambda instance, value: self._onShow(instance, value)
         )
+
+        self._onTitle(self, self.title)
+        self._onBody(self, self.body)
+        self._onShow(self, self.show)
 
     def _onTitle(self, instance, value):
         self.errorTitleLabel.text = value
@@ -103,6 +105,8 @@ class ErrorCard(MDCard):
 
     def _onShow(self, instance, value):
         if value:
+            self.height = DEFAULT_HEIGHT
             self.opacity = 1
         else:
+            self.height = 0
             self.opacity = 0

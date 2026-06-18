@@ -11,19 +11,23 @@ from kivymd.uix.button import (
     MDIconButton
 )
 
+from MDIconButtonCustom import MDIconButtonCustom
+
+#test = MDIconButton()
+
+
 from kivy.uix.image import AsyncImage
 from kivy.metrics import dp, sp
 from kivy.properties import (
-    StringProperty,
-    NumericProperty,
-    BooleanProperty,
     ObjectProperty
 )
 
-from MDIconButtonCustom import MDIconButtonCustom
-
 from .Job import Job
 from .Queue import Queue
+
+import KivyCustomGraphics
+
+import Colors
 
 class JobView(MDCard):
 
@@ -31,7 +35,7 @@ class JobView(MDCard):
     thumbnailContainer: MDFloatLayout
     thumbnailImage: AsyncImage
     cancelIconButton: MDButtonIcon
-    pausePlayIconButton: MDButtonIcon
+    pausePlayIconButton: MDIconButton
     etaLabel: MDLabel
     bottomBar: MDBoxLayout
     titleLabel: MDLabel
@@ -49,6 +53,7 @@ class JobView(MDCard):
             size_hint_x=1,
             size_hint_y=None,
             adaptive_height=True,
+            adaptive_width=False,
             **kwargs
         )
 
@@ -67,11 +72,15 @@ class JobView(MDCard):
             }
         )
 
-        self.cancelIconButton = MDIconButtonCustom(
-            icon="pause-circle-outline",
-            size_hint=(None, None),
-            size=(dp(100), dp(100)),
+        self.cancelIconButton = MDIconButton(
+            theme_width="Custom",
+            theme_height="Custom",
             theme_font_size="Custom",
+            theme_icon_color="Custom",
+            theme_bg_color="Custom",
+            icon="pause-circle-outline",
+            size_hint=(1, 1),
+            size=(dp(100), dp(100)),
             font_size=sp(50),
             pos_hint={
                 "right": 1,
@@ -80,16 +89,22 @@ class JobView(MDCard):
         )
 
         self.pausePlayIconButton = MDIconButtonCustom(
+            theme_width="Custom",
+            theme_height="Custom",
+            theme_font_size="Custom",
+            theme_icon_color="Custom",
+            theme_bg_color="Custom",
             icon="pause-circle-outline",
             size_hint=(None, None),
-            size=(dp(100), dp(100)),
-            theme_font_size="Custom",
-            font_size=sp(100),
+            size=(dp(70), dp(70)),
+            adaptive_size=False,
             pos_hint={
                 "center_x": 0.5,
                 "center_y": 0.5
             },
-            md_bg_color=(0, 0, 0, 0.25),
+            font_size=sp(50),
+            icon_color=Colors.black,
+            md_bg_color=Colors.grey,
             on_release=lambda dt: self._onPausePlayIconButtonRelease(dt)
         )
 
@@ -105,7 +120,7 @@ class JobView(MDCard):
         )
 
         self.thumbnailContainer.add_widget(self.thumbnailImage)
-        # self.thumbnailContainer.add_widget(self.cancelIconButton)
+        self.thumbnailContainer.add_widget(self.cancelIconButton)
         self.thumbnailContainer.add_widget(self.pausePlayIconButton)
         self.thumbnailContainer.add_widget(self.etaLabel)
 
@@ -152,8 +167,7 @@ class JobView(MDCard):
         self.bind(width=self._updateImageHeight)
         """
 
-        if self.job:
-            self._onJobChanged(self, self.job)
+        self._onJobChanged(self, self.job)
 
     def _onJobThumbnail(self, instance, value):
         self.thumbnailImage.source = value
@@ -229,6 +243,8 @@ class JobView(MDCard):
         self._onJobSpeed(instance, job.speed)
 
     def _onPausePlayIconButtonRelease(self, dt: int) -> None:
+
+        print("current jobs status", self.job.status)
 
         if (
             self.job.status == "downloading" or

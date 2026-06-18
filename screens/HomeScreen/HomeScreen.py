@@ -1,26 +1,27 @@
 
-from kivy.uix.screenmanager import Screen
-
-from kivy.uix.scrollview import ScrollView
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.widget import Widget
 from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDFabButton
 from kivymd.uix.progressindicator import MDCircularProgressIndicator
-
 from kivymd.icon_definitions import md_icons
+from kivymd.uix.button import MDFabButton
+from kivymd.uix.appbar import (
+    MDTopAppBar,
+    MDTopAppBarLeadingButtonContainer,
+    MDActionTopAppBarButton,
+    MDTopAppBarTrailingButtonContainer
+)
 
 from kivy.core.window import Window
-
-from screens.HomeScreen.VideoInfoCard import VideoInfoCard
-from screens.HomeScreen.TopBarHBoxLayout import TopBarHBoxLayout
-from screens.HomeScreen.ErrorCard import ErrorCard
-
-from kivy.clock import Clock
 from kivy.metrics import dp
+from kivy.properties import (
+    StringProperty
+)
 
-from threading import Thread
+from screens.HomeScreen.ErrorCard import ErrorCard
 
 import Colors
 
@@ -28,35 +29,50 @@ import Download
 
 Window.clearcolor = Colors.white
 
-from kivy.properties import (
-    NumericProperty,
-    StringProperty,
-    ObjectProperty
-)
+class HomeScreen(MDScreen):
 
-from pprint import pprint
-
-import config
-
-class HomeScreen(Screen):
-
-    url = StringProperty("")
+    url: str = StringProperty("")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.scroll = ScrollView()
+        self.topAppBar = MDTopAppBar(
+            MDTopAppBarLeadingButtonContainer(
+                MDActionTopAppBarButton(
+                    icon="cog",
+                    icon_color=Colors.black
+                ),
+            ),
+            MDTopAppBarTrailingButtonContainer(
+                MDActionTopAppBarButton(
+                    icon="youtube-subscription",
+                    icon_color=Colors.black
+                ),
+            ),
+            type="small",
+            size_hint=(1, 0.125),
+            pos_hint={
+                "x": 0,
+                "y": 0.875
+            },
+            padding=(dp(30), dp(30))
+        )
+
+        self.centerScroll = MDScrollView(
+            size_hint=(1, 0.875),
+            pos_hint={
+                "x": 0,
+                "y": 0
+            }
+        )
 
         self.rootVBoxLayout = MDBoxLayout(
             orientation="vertical",
             size_hint=(1, None),
             adaptive_height=True,
             spacing=dp(12),
-            padding=(dp(50), dp(50)),
-            md_bg_color=Colors.white
+            padding=(dp(50), dp(50))
         )
-
-        self.topBarHBoxLayout = TopBarHBoxLayout()
 
         self.titleBar = MDBoxLayout(
             orientation="horizontal",
@@ -99,21 +115,10 @@ class HomeScreen(Screen):
             queue=Download.Queue
         )
 
-        self.downloadPromptButton = MDFabButton(
-            icon="download",
-            md_bg_color=Colors.turqoise,
-            icon_color=Colors.black,
-            pos_hint={ "right": 1, "y": 1 }
-        )
-        self.downloadPromptButton.bind(
-            on_release=self._onDownloadPromptButtonRelease
-        )
-
-        self.rootVBoxLayout.add_widget(self.topBarHBoxLayout)
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
-                height=dp(25)
+                height=dp(60)
             )
         )
         self.rootVBoxLayout.add_widget(self.titleBar)
@@ -132,11 +137,7 @@ class HomeScreen(Screen):
             )
         )
         self.rootVBoxLayout.add_widget(self.errorCard)
-
         self.rootVBoxLayout.add_widget(self.downloadQueueView)
-
-        self.rootVBoxLayout.add_widget(self.downloadPromptButton)
-
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
@@ -144,14 +145,26 @@ class HomeScreen(Screen):
             )
         )
 
+        self.centerScroll.add_widget(self.rootVBoxLayout)
+
+        self.downloadPromptButton = MDFabButton(
+            icon="download",
+            md_bg_color=Colors.turqoise,
+            icon_color=Colors.black,
+            pos_hint={
+                "right": 0.95,
+                "y": 0.05
+            }
+        )
+
+        self.add_widget(self.topAppBar)
+        self.add_widget(self.centerScroll)
+        self.add_widget(self.downloadPromptButton)
+
         self.downloadJobOptionsDialogue = Download.JobOptionsDialogue()
 
-        self.scroll.add_widget(self.rootVBoxLayout)
-
-        self.add_widget(self.scroll)
-
-        self.downloadJobOptionsDialogue.bind(
-            on_confirm=self._onDownloadOptionsDialogueConfirm
+        self.downloadPromptButton.bind(
+            on_release=lambda instance: self._onDownloadPromptButtonRelease(instance)
         )
 
     def _onInputText(self, instance, value):
@@ -179,9 +192,3 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
         job = Download.Job(url=url)
         self.downloadJobOptionsDialogue.job = job
         self.downloadJobOptionsDialogue.open()
-
-    def _onDownloadOptionsDialogueConfirm(
-        self,
-        selectedFormats
-    ):
-        print("_onDownloadOptionsDialogueConfirm called: here is the selected formats", selectedFormats)
