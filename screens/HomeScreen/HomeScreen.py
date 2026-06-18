@@ -168,7 +168,8 @@ class HomeScreen(MDScreen):
         )
 
     def _onInputText(self, instance, value):
-        self.url = value
+        url = value
+        self.url = url
 
     def _onDownloadPromptButtonRelease(self, instance):
 
@@ -180,7 +181,7 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
 
         url = self.url
 
-        url = TEST_URL
+        #url = TEST_URL
 
         if Download.helpers.isUrlValid(url) is False:
             self.errorCard.title = "Url is invalid"

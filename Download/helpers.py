@@ -21,6 +21,7 @@ class YTDLPLogger:
     def error(self, msg):
         print(msg)
 
+"""
 def getVideoMetaData(
     url: str
 ) -> Types.ExtractInfoDictResult:
@@ -72,6 +73,7 @@ def getVideoMetaData(
             "error_msg": errorMsg,
             "info_dict": None
         }
+"""
 
 def isUrlValid(url: str) -> bool:
 

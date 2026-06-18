@@ -48,7 +48,9 @@ class Job(EventDispatcher):
         "audio"
     )
 
-    DEFAULT_DOWNLOAD_TYPE: DownloadType = ALLOWED_DOWNLOAD_TYPES[0]
+    DEFAULT_DOWNLOAD_TYPE_INDEX: int = 0
+
+    DEFAULT_DOWNLOAD_TYPE: DownloadType = ALLOWED_DOWNLOAD_TYPES[DEFAULT_DOWNLOAD_TYPE_INDEX]
 
     downloadType: DownloadType = StringProperty(DEFAULT_DOWNLOAD_TYPE, options=ALLOWED_DOWNLOAD_TYPES)
 
@@ -64,7 +66,9 @@ class Job(EventDispatcher):
         "webm"
     )
 
-    DEFAULT_VIDEO_EXT: VideoExt = ALLOWED_VIDEO_EXTS[0]
+    DEFAULT_VIDEO_EXT_INDEX = 0
+
+    DEFAULT_VIDEO_EXT: VideoExt = ALLOWED_VIDEO_EXTS[DEFAULT_VIDEO_EXT_INDEX]
 
     videoExts: VideoExts = ListProperty(ALLOWED_VIDEO_EXTS)
     videoExt: VideoExt = StringProperty(DEFAULT_VIDEO_EXT, options=ALLOWED_VIDEO_EXTS)
@@ -89,7 +93,9 @@ class Job(EventDispatcher):
         "360"
     )
 
-    DEFAULT_VIDEO_HEIGHT: VideoHeight = ALLOWED_VIDEO_HEIGHTS[3]
+    DEFAULT_VIDEO_HEIGHT_INDEX: int = 3
+
+    DEFAULT_VIDEO_HEIGHT: VideoHeight = ALLOWED_VIDEO_HEIGHTS[DEFAULT_VIDEO_HEIGHT_INDEX]
 
     videoHeights: VideoHeights = ListProperty(ALLOWED_VIDEO_HEIGHTS)
     videoHeight: VideoHeight = StringProperty(DEFAULT_VIDEO_HEIGHT, options=ALLOWED_VIDEO_HEIGHTS)
@@ -107,29 +113,33 @@ class Job(EventDispatcher):
         "webm",
         "opus"
     )
+    
+    DEFAULT_AUDIO_EXT_INDEX: int = 2
 
-    DEFAULT_AUDIO_EXT: AudioExt = ALLOWED_AUDIO_EXTS[2]
+    DEFAULT_AUDIO_EXT: AudioExt = ALLOWED_AUDIO_EXTS[DEFAULT_AUDIO_EXT_INDEX]
 
     audioExts: AudioExts = ListProperty(ALLOWED_AUDIO_EXTS)
     audioExt: AudioExt = StringProperty(DEFAULT_AUDIO_EXT, options=ALLOWED_AUDIO_EXTS)
 
     Abr = Literal[
-        "150",
-        "120",
-        "50",
-        "40"
+        "192",
+        "160",
+        "128",
+        "86"
     ]
 
     Abrs = tuple[Abr, ...]
 
     ALLOWED_ABRS: Abrs = (
-        "150",
-        "120",
-        "50",
-        "40"
+        "192",
+        "160",
+        "128",
+        "86"
     )
 
-    DEFAULT_ABR: Abr = ALLOWED_ABRS[0]
+    DEFAULT_ABR_INDEX = 0
+
+    DEFAULT_ABR: Abr = ALLOWED_ABRS[DEFAULT_ABR_INDEX]
 
     abrs: Abrs = ListProperty(ALLOWED_ABRS)
     abr: Abr = StringProperty(DEFAULT_ABR, options=ALLOWED_ABRS)
@@ -164,7 +174,9 @@ class Job(EventDispatcher):
         "finished"
     )
 
-    DEFAULT_STATUS: Status = STATUS_TYPES[0]
+    DEFAULT_STATUS_INDEX: int = 0
+
+    DEFAULT_STATUS: Status = STATUS_TYPES[DEFAULT_STATUS_INDEX]
 
     status: Status = StringProperty("queued", options=STATUS_TYPES)
 
@@ -266,24 +278,36 @@ class Job(EventDispatcher):
                 "remote_components": [
                     "ejs:github"
                 ],
+                "concurrent_fragments": 16,
+                "downloader": "aria2c",
+                "downloader_args": {
+                    "aria2c": "-x 16 -s 16 -k 1M"
+                },
+                "retries": 10,
+                "fragment_retries": 10,
                 "outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
                 "format": "bestvideo+bestaudio/best",
                 "merge_output_format": "mp4",
                 # leave default for ffmpeg merge for video and audio format
                 # "postprocessors": [],
+                "postprocessor_args": {
+                    "ffmpeg": ["-threads", "4"]
+                },
                 "no_color": True,
-                "progress_hooks": [progressHook],
+                "progress_hooks": [progressHook]
             }
 
+            print("self.videoHeight: ", self.videoHeight)
+
             if self.downloadType == "video":
-                videoFormat = f"bestvideo[height>={self.videoHeight}]"
-                audioFormat = f"bestaudio[acodec={self.audioExt}][abr>={self.abr}]/best"
-                ydl_download_options["format"] = f"{videoFormat}+{audioFormat}"
-                ydl_download_options["format_sort"] = ["+height", "+abr"]
+                ydl_download_options["format"] = (
+                    f"bv*[height<={self.videoHeight}]+"
+                    f"ba*[abr<={self.abr}]"
+                    f"/b[height<={self.videoHeight}]"
+                )
                 ydl_download_options["merge_output_format"] = self.videoExt
             elif self.downloadType == "audio":
-                ydl_download_options["format"] = f"bestaudio[acodec={self.audioExt}][abr>={self.abr}] -S +abr"
-                ydl_download_options["format_sort"] = ["+abr"]
+                ydl_download_options["format"] = f"ba*[abr<={self.abr}]/ba"
                 ydl_download_options["merge_output_format"] = self.audioExt
                 ydl_download_options["postprocessors"] = []
 

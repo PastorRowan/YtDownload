@@ -43,10 +43,10 @@ class JobVideoFormatDialogue(MDDialog):
 
     job: Job = ObjectProperty(Job())
 
-    selectedVideoExtIndex: int = NumericProperty(0)
+    selectedVideoExtIndex: int = NumericProperty(Job.DEFAULT_VIDEO_EXT_INDEX)
     _videoExtDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
-    selectedVideoHeightIndex: int = NumericProperty(0)
+    selectedVideoHeightIndex: int = NumericProperty(Job.DEFAULT_VIDEO_HEIGHT_INDEX)
     _videoHeightDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
     def __init__(self, **kwargs):
@@ -155,7 +155,19 @@ class JobVideoFormatDialogue(MDDialog):
 
         )
 
-        self.job.bind(
+        self.bind(
+            job=lambda instance, value: self._onJob(instance, value)
+        )
+
+        self._onJob(self, self.job)
+
+        self.register_event_type("on_confirm")
+
+    def _onJob(self, instance, value):
+
+        job = value
+
+        job.bind(
             videoExts=lambda instance, value: self._onJobVideoExts(instance, value),
             videoHeights=lambda instance, value: self._onJobVideoHeights(instance, value)
         )
@@ -165,13 +177,12 @@ class JobVideoFormatDialogue(MDDialog):
             selectedVideoHeightIndex=lambda instance, value: self._onSelectedVideoHeightIndex(instance, value)
         )
 
-        self._onJobVideoExts(self, self.job.videoExts)
-        self._onJobVideoHeights(self, self.job.videoHeights)
+        self._onJobVideoExts(self, job.videoExts)
+        self._onJobVideoHeights(self, job.videoHeights)
 
         self._onSelectedVideoExtIndex(self, self.selectedVideoExtIndex)
         self._onSelectedVideoHeightIndex(self, self.selectedVideoHeightIndex)
 
-        self.register_event_type("on_confirm")
 
     def _onJobVideoExts(self, instance, value):
 
@@ -185,7 +196,7 @@ class JobVideoFormatDialogue(MDDialog):
 
         for index, videoExt in enumerate(self.job.videoExts):
             self._videoExtDropDownMenuItems.append({
-                "text": f"{videoExt}kbps",
+                "text": videoExt,
                 "on_release": lambda i=index: _selectVideoExtIndex(i)
             })
 
@@ -201,7 +212,7 @@ class JobVideoFormatDialogue(MDDialog):
 
         for index, videoHeight in enumerate(self.job.videoHeights):
             self._videoHeightDropDownMenuItems.append({
-                "text": f"{videoHeight}kbps",
+                "text": f"{videoHeight}p",
                 "on_release": lambda i=index: _selectVideoHeightIndex(i)
             })
 
@@ -210,8 +221,8 @@ class JobVideoFormatDialogue(MDDialog):
         self.videoExtDropDownMenuButtonText.text = videoExt
 
     def _onSelectedVideoHeightIndex(self, instance, value):
-        videoHeight = self.job.videoExts[value]
-        self.videoHeightDropDownMenuButtonText.text = videoHeight
+        videoHeight = self.job.videoHeights[value]
+        self.videoHeightDropDownMenuButtonText.text = f"{videoHeight}p"
 
     def _onVideoExtDropDownMenuButtonRelease(self):
 

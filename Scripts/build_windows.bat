@@ -9,6 +9,8 @@ cd /d "%~dp0.."
 
 pyinstaller ^
   --onefile ^
+  ::--noconsole ^
+  --specpath build/spec ^
   --distpath dist/windows ^
   --add-binary "bin/windows/ffmpeg.exe;bin" ^
   --add-binary "bin/windows/ffprobe.exe;bin" ^

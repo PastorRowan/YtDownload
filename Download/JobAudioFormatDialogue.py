@@ -43,10 +43,10 @@ class JobAudioFormatDialogue(MDDialog):
 
     job: Job = ObjectProperty(Job())
 
-    selectedAudioExtIndex: int = NumericProperty(0)
+    selectedAudioExtIndex: int = NumericProperty(Job.DEFAULT_AUDIO_EXT_INDEX)
     _audioExtDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
-    selectedAudioAbrIndex: int = NumericProperty(0)
+    selectedAudioAbrIndex: int = NumericProperty(Job.DEFAULT_ABR_INDEX)
     _audioAbrDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
     def __init__(self, **kwargs):
@@ -121,7 +121,7 @@ class JobAudioFormatDialogue(MDDialog):
                 MDLabel(text="Audio extension"),
                 self.audioExtDropDownMenuButton,
 
-                MDLabel(text="Audio height"),
+                MDLabel(text="Audio bit rate"),
                 self.audioAbrDropDownMenuButton,
 
                 MDDialogButtonContainer(
@@ -155,7 +155,19 @@ class JobAudioFormatDialogue(MDDialog):
 
         )
 
-        self.job.bind(
+        self.bind(
+            job=lambda instance, value: self._onJob(instance, value)
+        )
+
+        self._onJob(self, self.job)
+
+        self.register_event_type("on_confirm")
+
+    def _onJob(self, instance, value):
+
+        job = value
+
+        job.bind(
             audioExts=lambda instance, value: self._onJobAudioExts(instance, value),
             abrs=lambda instance, value: self._onJobAudioAbrs(instance, value)
         )
@@ -165,13 +177,11 @@ class JobAudioFormatDialogue(MDDialog):
             selectedAudioAbrIndex=lambda instance, value: self._onSelectedAudioAbrIndex(instance, value)
         )
 
-        self._onJobAudioExts(self, self.job.audioExts)
-        self._onJobAudioAbrs(self, self.job.abrs)
+        self._onJobAudioExts(self, job.audioExts)
+        self._onJobAudioAbrs(self, job.abrs)
 
         self._onSelectedAudioExtIndex(self, self.selectedAudioExtIndex)
         self._onSelectedAudioAbrIndex(self, self.selectedAudioAbrIndex)
-
-        self.register_event_type("on_confirm")
 
     def _onJobAudioExts(self, instance, value):
 
@@ -183,9 +193,9 @@ class JobAudioFormatDialogue(MDDialog):
             self.selectedAudioExtIndex = index
             audioExtsDropDownMenu.dismiss()
 
-        for index, audioExt in enumerate(self.job.abrs):
+        for index, audioExt in enumerate(self.job.audioExts):
             self._audioExtDropDownMenuItems.append({
-                "text": f"{audioExt}kbps",
+                "text": audioExt,
                 "on_release": lambda i=index: _selectAudioExtIndex(i)
             })
 
@@ -199,7 +209,7 @@ class JobAudioFormatDialogue(MDDialog):
             self.selectedAudioAbrIndex = index
             audioAbrDropDownMenu.dismiss()
 
-        for index, audioAbr in enumerate(self.job.audioExts):
+        for index, audioAbr in enumerate(self.job.abrs):
             self._audioAbrDropDownMenuItems.append({
                 "text": f"{audioAbr}kbps",
                 "on_release": lambda i=index: _selectAudioAbrIndex(i)

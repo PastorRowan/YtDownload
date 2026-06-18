@@ -116,12 +116,8 @@ class JobOptionsDialogue(MDDialog):
         )
 
         self.audioDownloadTypeChip = MDSegmentedButtonItem(
-            MDSegmentButtonIcon(
-                icon="file-music-outline"
-            ),
-            MDSegmentButtonLabel(
-                text="Audio"
-            ),
+            MDSegmentButtonIcon(icon="file-music-outline"),
+            MDSegmentButtonLabel(text="Audio"),
             on_release=lambda dt: self._onAudioDownloadTypeChipRelease()
         )
 
@@ -225,53 +221,65 @@ class JobOptionsDialogue(MDDialog):
         )
         self.add_widget(self.container)
 
-        self.jobVideoFormatDialogue = JobVideoFormatDialogue(
-            job=self.job
+        self.bind(
+            job=lambda instance, value: self._onJob(instance, value)
         )
+
+        self._onJob(self, self.job)
+
+    def _onJob(self, instance, value):
+
+        job = value
+
+        self.jobVideoFormatDialogue = JobVideoFormatDialogue(
+            job=job
+        )
+
+        self.jobAudioFormatDialogue = JobAudioFormatDialogue(
+            job=job
+        )
+
+        job.bind(
+            downloadType=lambda instance, value: self._onJobDownloadType(instance, value)
+        )
+
         self.jobVideoFormatDialogue.bind(
             on_confirm=lambda jobVideoFormatDialogue, videoFormat:
                 self._onVideoFormatConfirmed(jobVideoFormatDialogue, videoFormat)
         )
 
-        self.jobAudioFormatDialogue = JobAudioFormatDialogue(
-            job=self.job
-        )
         self.jobAudioFormatDialogue.bind(
             on_confirm=lambda jobAudioFormatDialogue, audioFormat:
                 self._onAudioFormatConfirmed(jobAudioFormatDialogue, audioFormat)
         )
 
-        self.job.bind(
-            downloadType=lambda instance, value: self._onDownloadJobDownloadType(instance, value)
-        )
-        self._onDownloadJobDownloadType(self, self.job.downloadType)
+        self._onJobDownloadType(self, job.downloadType)
 
-    def _onDownloadJobDownloadType(self, instance, value):
-        if value == "video":
+    def _onJobDownloadType(self, instance, value):
+        downloadType = value
+        print("new downloadType: ", downloadType)
+        if downloadType == "video":
             self.videoDownloadTypeChip.active = True
             self.audioDownloadTypeChip.active = False
             self._showVideoFormatChipButton()
-        elif value == "audio":
+        elif downloadType == "audio":
             self.videoDownloadTypeChip.active = False
             self.audioDownloadTypeChip.active = True
             self._hideVideoFormatChipButton()
 
     def _onVideoDownloadTypeChipRelease(self):
         print("_onVideoDownloadTypeChipRelease")
-        print(self.availableVideoExts)
-        print(self.availableVideoHeights)
-        print(self.availableAudioExts)
-        print(self.availableAbrs)
         self.job.downloadType = "video"
 
     def _onAudioDownloadTypeChipRelease(self):
+        print("_onAudioDownloadTypeChipRelease")
         self.job.downloadType = "audio"
 
     def _onVideoFormatChipRelease(self):
-        self.selectVideoFormatDialogue.open()
+        self.jobVideoFormatDialogue.open()
 
     def _onAudioFormatChipRelease(self):
-        self.selectAudioFormatDialogue.open()
+        self.jobAudioFormatDialogue.open()
 
     def _onVideoFormatConfirmed(
         self,
