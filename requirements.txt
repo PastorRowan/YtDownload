@@ -1,3 +1,4 @@
+altgraph==0.17.5
 asyncgui==0.6.3
 asynckivy==0.6.4
 certifi==2026.5.20
@@ -14,11 +15,15 @@ kivymd @ https://github.com/kivymd/KivyMD/archive/master.zip#sha256=c09db9f44a04
 materialshapes==0.3
 materialyoucolor==3.0.2
 packaging==26.2
+pefile==2024.8.26
 pillow==12.2.0
 pycairo==1.29.0
 Pygments==2.20.0
+pyinstaller==6.21.0
+pyinstaller-hooks-contrib==2026.6
 pypiwin32==223
 pywin32==312
+pywin32-ctypes==0.2.3
 requests==2.34.2
 setuptools==82.0.1
 urllib3==2.7.0

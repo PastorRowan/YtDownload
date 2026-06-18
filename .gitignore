@@ -6,6 +6,12 @@
 
 /downloads
 
+/build
+
+build.spec
+
+/dist
+
 /venv
 
 bin/android/*

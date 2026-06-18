@@ -259,8 +259,8 @@ class Job(EventDispatcher):
                 "logger": helpers.YTDLPLogger(),
                 "ffmpeg_location": config.FFMPEG_PATH,
                 "js_runtimes": {
-                    "deno": {
-                        "path": config.DENO_PATH
+                    "quickjs": {
+                        "path": config.QUICK_JS_PATH
                     }
                 },
                 "remote_components": [
