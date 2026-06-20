@@ -187,7 +187,6 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
             self.errorCard.title = "Url is invalid"
             self.errorCard.body = f"Url '{url}' is invalid"
             self.errorCard.show = True
-            print(f"Url '{url}' is invalid")
             return
 
         job = Download.Job(url=url)

@@ -83,15 +83,6 @@ def set_border(
     color: ColorTypes.ColorTuple,
     widthP: int = 1
 ) -> None:
-    
-    print(widget.background_color)
-
-    print(widget.background_normal)
-
-    print(widget.background_active)
-
-    print(widget.size_hint_y)
-
 
     if len(color) == 3:
         r, g, b = color

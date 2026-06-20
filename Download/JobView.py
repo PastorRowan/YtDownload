@@ -179,11 +179,9 @@ class JobView(MDCard):
         self.channelLabel.text = value
 
     def _onJobProgress(self, instance, value):
-        print("progress changed: ", value)
         self.progressIndicator.value = value * 100
 
     def _onJobEta(self, instance, value) -> None:
-        print("eta changed: ", value)
 
         if value is None:
             return
@@ -203,7 +201,7 @@ class JobView(MDCard):
         self.etaLabel.text = etaStr
 
     def _onJobSpeed(self, instance, value):
-        print("speed changed: ", value)
+        pass
 
     def _onJobStatus(self, instance, value):
     
@@ -211,13 +209,11 @@ class JobView(MDCard):
     
         match newStatus:
             case "downloading":
-                print("Downloading")
                 self.pausePlayIconButton.icon = "pause-circle-outline"
             case "paused":
-                print("Paused")
                 self.pausePlayIconButton.icon = "play-circle-outline"
             case _:
-                print("Not implementation for status: ", value)
+                pass
 
     def _onJobChanged(self, instance, job):
 
@@ -243,8 +239,6 @@ class JobView(MDCard):
         self._onJobSpeed(instance, job.speed)
 
     def _onPausePlayIconButtonRelease(self, dt: int) -> None:
-
-        print("current jobs status", self.job.status)
 
         if (
             self.job.status == "downloading" or

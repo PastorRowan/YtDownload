@@ -1,4 +1,4 @@
 
-call .\Scripts\activate_venv.bat
+call .\activate_venv.bat
 
 python main.py

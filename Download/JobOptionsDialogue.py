@@ -257,7 +257,6 @@ class JobOptionsDialogue(MDDialog):
 
     def _onJobDownloadType(self, instance, value):
         downloadType = value
-        print("new downloadType: ", downloadType)
         if downloadType == "video":
             self.videoDownloadTypeChip.active = True
             self.audioDownloadTypeChip.active = False
@@ -268,11 +267,9 @@ class JobOptionsDialogue(MDDialog):
             self._hideVideoFormatChipButton()
 
     def _onVideoDownloadTypeChipRelease(self):
-        print("_onVideoDownloadTypeChipRelease")
         self.job.downloadType = "video"
 
     def _onAudioDownloadTypeChipRelease(self):
-        print("_onAudioDownloadTypeChipRelease")
         self.job.downloadType = "audio"
 
     def _onVideoFormatChipRelease(self):
@@ -296,7 +293,6 @@ class JobOptionsDialogue(MDDialog):
         jobAudioFormatDialogue.dismiss()
 
     def _on_download_options_confirmed(self):
-        print("_onDownloadOptionsConfirmed: created download job and added it to download queue")
 
         Queue.addJob(self.job)
 

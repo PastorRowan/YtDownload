@@ -8,11 +8,13 @@
 
 /build
 
-build.spec
+main.spec
 
 /dist
 
 /venv
+/venv-windows
+/venv-linux
 
 bin/android/*
 !bin/android/.gitkeep

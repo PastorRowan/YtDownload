@@ -1,8 +1,5 @@
 
-from typing import TypedDict
-
 import yt_dlp
-import config
 
 from kivy.event import EventDispatcher
 from kivy.properties import (
@@ -15,8 +12,6 @@ from kivy.properties import (
 from kivy.clock import Clock
 
 from threading import Thread
-
-import config
 
 from urllib.parse import urlparse
 
@@ -64,32 +59,26 @@ class _Queue(EventDispatcher):
         self,
         job: Job
     ) -> None:
-
-        result = job.run()
-
-        Clock.schedule_once(
-            lambda dt: self._onDownloadFinished(
-                job,
-                result
+        try:
+            job.run()
+        except Exception:
+            pass
+        finally:
+            Clock.schedule_once(
+                lambda dt: self._onDownloadFinished(job)
             )
-        )
 
     def _onDownloadFinished(
         self,
-        job: Job,
-        result: Types.ExtractInfoDictResult
+        job: Job
     ) -> None:
 
         if job not in self.queuedJobs:
             return
 
-        if not result["ok"]:
-            job.status = "error"
-            job.error = result["error_msg"] or ""
+        was_current = (self._currentJob is job)
 
-        is_current = (self._currentJob is job)
-
-        if job.status in ("cancelled", "finished") and is_current:
+        if job.status in ("finished", "cancelled", "error") and was_current:
             self.queuedJobs = [j for j in self.queuedJobs if j is not job]
 
         self._currentJob = None
@@ -165,8 +154,6 @@ class _Queue(EventDispatcher):
 
     def resumeJob(self, job: Job):
 
-        print("Resuming job")
-
         if (
             (
                 job in self.queuedJobs
@@ -174,7 +161,6 @@ class _Queue(EventDispatcher):
                 job not in self.pausedJobs
             )
         ):
-            print("Job not resumed because it is in queued jobs already or it is not in paused jobs")
             return
 
         job.status = "queued"

@@ -3,13 +3,14 @@ from typing import (
     Literal
 )
 
-import config
+import CONFIG
 
 from kivy.event import EventDispatcher
 from kivy.properties import (
     NumericProperty,
     StringProperty,
-    ListProperty
+    ListProperty,
+    ObjectProperty
 )
 from kivy.clock import Clock
 
@@ -180,9 +181,9 @@ class Job(EventDispatcher):
 
     status: Status = StringProperty("queued", options=STATUS_TYPES)
 
-    DEFAULT_ERROR: str = ""
+    DEFAULT_ERROR: Exception | None = None
 
-    error: str = StringProperty(DEFAULT_ERROR)
+    error: Exception | None = ObjectProperty(DEFAULT_ERROR, allownone=True)
 
     DEFAULT_PROGRESS: float = 0
 
@@ -199,7 +200,7 @@ class Job(EventDispatcher):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def run(self) -> Types.ExtractInfoDictResult:
+    def run(self) -> None:
 
         if self.url == self.DEFAULT_URL:
             raise Exception(f"Failed to run job: url is not assigned-'{self.url}'")
@@ -269,10 +270,10 @@ class Job(EventDispatcher):
             ydl_download_options = {
                 # Prevents yt-dlp from using overwritten kivy sys.error object
                 "logger": helpers.YTDLPLogger(),
-                "ffmpeg_location": config.FFMPEG_PATH,
+                "ffmpeg_location": str(CONFIG.PATHS.BIN_DIR),
                 "js_runtimes": {
                     "quickjs": {
-                        "path": config.QUICK_JS_PATH
+                        "path": str(CONFIG.PATHS.QUICK_JS_BIN_PATH)
                     }
                 },
                 "remote_components": [
@@ -297,8 +298,6 @@ class Job(EventDispatcher):
                 "progress_hooks": [progressHook]
             }
 
-            print("self.videoHeight: ", self.videoHeight)
-
             if self.downloadType == "video":
                 ydl_download_options["format"] = (
                     f"bv*[height<={self.videoHeight}]+"
@@ -321,38 +320,17 @@ class Job(EventDispatcher):
                 def updateStatusToFinished(dt: int) -> None:
                     self.status = "finished"
                 Clock.schedule_once(updateStatusToFinished)
-
-                return {
-                    "ok": True,
-                    "error_msg": None,
-                    "info_dict": infoDict
-                }
             
         except Paused:
-            return {
-                "ok": True,
-                "error_msg": None,
-                "info_dict": None
-            }
+            pass
         except Cancelled:
-            return {
-                "ok": True,
-                "error_msg": None,
-                "info_dict": None
-            }
+            pass
+
         except Exception as e:
 
-            errorMsg = str(e)
-
-            print(errorMsg)
+            error = e
 
             def updateStatusAndError(dt):
                 self.status = "error"
-                self.error = errorMsg
+                self.error = error
             Clock.schedule_once(updateStatusAndError)
-
-            return {
-                "ok": False,
-                "error_msg": errorMsg,
-                "info_dict": None
-            }

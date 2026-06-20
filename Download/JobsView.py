@@ -66,4 +66,3 @@ class JobsView(GridLayout):
                         size_hint=(1, None)
                     )
                 )
-            print("jobView: ", jobView.height, jobView.width)
