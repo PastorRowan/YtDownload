@@ -18,6 +18,11 @@ main.spec
 /venv-windows/
 /venv-linux/
 
+:Zone.identifier
+
+*.exe
+*.apk
+
 bin/android/*
 !bin/android/.gitkeep
 
