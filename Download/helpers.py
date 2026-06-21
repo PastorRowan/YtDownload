@@ -2,7 +2,7 @@
 
 import yt_dlp
 
-import CONFIG
+import config
 
 from urllib.parse import urlparse
 
@@ -29,10 +29,10 @@ def getVideoMetaData(
     ydl_metadata_options = {
         # Prevents yt-dlp from using overwritten kivy sys.error object
         "logger": YTDLPLogger(),
-        "ffmpeg_location": CONFIG.FFMPEG_PATH,
+        "ffmpeg_location": config.FFMPEG_PATH,
         "js_runtimes": {
             "quickjs": {
-                "path": CONFIG.QUICK_JS_PATH
+                "path": config.QUICK_JS_PATH
             }
         },
         "remote_components": [

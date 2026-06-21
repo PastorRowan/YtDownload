@@ -54,8 +54,9 @@ class MACOS:
     QUICK_JS_BIN_PATH = BIN_DIR / "qjs"
 
     DEST_BIN = "bin/macos"
-    
+
 class ANDROID:
+    #from kivy.resources import resource_find
 
     DIR = PurePosixPath(PROJECT.DIR)
 
@@ -63,9 +64,15 @@ class ANDROID:
     DIST_DIR = DIR / "android"
     BIN_DIR = DIR / "android"
 
-    FFMPEG_BIN_PATH = BIN_DIR / "ffmpeg"
-    FFPROBE_BIN_PATH = BIN_DIR / "ffprobe"
-    QUICK_JS_BIN_PATH = BIN_DIR / "qjs"
+    """
+    FFMPEG_APK_BIN_PATH = resource_find("bin/android/ffmpeg")
+    FFPROBE_APK_BIN_PATH = resource_find("bin/android/ffprobe")
+    QUICK_JS_APK_BIN_PATH = resource_find("bin/android/qjs-linux-aarch64")
+    """
+    
+    FFMPEG_BIN_PATH = None
+    FFPROBE_BIN_PATH = None
+    QUICK_JS_BIN_PATH = None
 
     DEST_BIN = "bin/android"
     

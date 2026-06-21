@@ -3,7 +3,7 @@ from typing import (
     Literal
 )
 
-import CONFIG
+import config
 
 from kivy.event import EventDispatcher
 from kivy.properties import (
@@ -270,10 +270,10 @@ class Job(EventDispatcher):
             ydl_download_options = {
                 # Prevents yt-dlp from using overwritten kivy sys.error object
                 "logger": helpers.YTDLPLogger(),
-                "ffmpeg_location": str(CONFIG.PATHS.BIN_DIR),
+                "ffmpeg_location": str(config.PATHS.FFMPEG_BIN_PATH),
                 "js_runtimes": {
                     "quickjs": {
-                        "path": str(CONFIG.PATHS.QUICK_JS_BIN_PATH)
+                        "path": str(config.PATHS.QUICK_JS_BIN_PATH)
                     }
                 },
                 "remote_components": [
