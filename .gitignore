@@ -1,20 +1,22 @@
 
 # Python cache
-**/__pycache__
+**/__pycache__/
 *.py[cod]
 *$py.class
 
-/downloads
+/downloads/
 
-/build
+/.buildozer/
+
+/build/
 
 main.spec
 
-/dist
+/dist/
 
-/venv
-/venv-windows
-/venv-linux
+/venv/
+/venv-windows/
+/venv-linux/
 
 bin/android/*
 !bin/android/.gitkeep

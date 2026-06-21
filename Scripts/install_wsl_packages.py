@@ -14,7 +14,16 @@ import CONFIG
 
 def main():
 
-    wsl_project_dir = CONFIG.LINUX.DIR
+    windows_path = Path(CONFIG.PROJECT.DIR)
+
+    print("windows_path = ", windows_path)
+
+    drive = windows_path.drive.rstrip(":").lower()
+    rest = windows_path.parts[1:]
+
+    wsl_project_dir = f"/mnt/{drive}/{'/'.join(rest)}"
+
+    print("wsl_project_dir: ", wsl_project_dir)
 
     subprocess.run(
         [
@@ -33,6 +42,8 @@ def main():
                 "sudo apt update && "
                 "sudo apt install python3.11-venv && "
                 "sudo apt update && "
+                "sudo apt install python3.11-dev && "
+                "sudo apt update && "
                 "sudo apt install -y "
                 "git "
                 "zip "
@@ -45,10 +56,16 @@ def main():
                 "libcairo2-dev "
                 "pkg-config "
                 "zlib1g-dev "
+                "libssl-dev "
+                "openssl "
+                "ca-certificates "
+                "libffi-dev "
                 "cmake && "
+                "sudo apt update && "
             ) + (
                 f"cd '{wsl_project_dir}' && "
-                "[ -d venv-linux ] || python3.11 -m venv venv-linux && "
+                "if [ ! -d venv-linux ]; then "
+                "python3.11 -m venv venv-linux; fi && "
                 "source venv-linux/bin/activate && "
                 "pip install --upgrade pip && "
                 "pip install -r android-build-requirements.txt"
