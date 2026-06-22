@@ -272,10 +272,10 @@ class Job(EventDispatcher):
             ydl_download_options = {
                 # Prevents yt-dlp from using overwritten kivy sys.error object
                 "logger": helpers.YTDLPLogger(),
-                "ffmpeg_location": str(config.PATHS.FFMPEG_BIN_PATH),
+                "ffmpeg_location": str(config.paths.executable("ffmpeg")),
                 "js_runtimes": {
                     "quickjs": {
-                        "path": str(config.PATHS.QUICK_JS_BIN_PATH)
+                        "path": str(config.paths.executable("qjs"))
                     }
                 },
                 "remote_components": [
@@ -290,7 +290,7 @@ class Job(EventDispatcher):
                 "fragment_retries": 10,
                 #"outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
                 "outtmpl": os.path.join(
-                    str(config.PATHS.DEFAULT_DOWNLOAD_DIR),
+                    str(config.paths.downloads_dir),
                     "%(title)s [%(id)s].%(ext)s"
                 ),
                 "format": "bestvideo+bestaudio/best",

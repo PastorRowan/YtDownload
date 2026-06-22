@@ -1,114 +1,115 @@
 
-from kivy.utils import platform
-from pathlib import Path, PureWindowsPath, PurePosixPath
+from pathlib import Path
 
-def get_default_download_dir():
-    
-    download_dir = None
-    
-    if platform == "android":
-        try:
-            base = "/storage/emulated/0/Download"
-            download_dir = Path(base) / "YtDownload"
-            download_dir.mkdir(parents=True, exist_ok=True)
-        except Exception:
-            from android.storage import app_storage_path
-            download_dir = Path(app_storage_path()) / "downloads"
-    else:
-        return Path.home() / "Downloads" / "YtDownload"
-    
-    return download_dir
+def platform():
 
-class PROJECT:
+    try:
 
-    DIR = Path(__file__).resolve().parent
+        from kivy.utils import platform as kivy_platform
 
-    PYINSTALLER_SPEC = DIR / "main.spec"
-    DOWNLOADS_DIR = DIR / "downloads"
+        mapping = {
+            "win": "windows",
+            "macosx": "macos",
+            "linux": "linux",
+            "android": "android",
+        }
 
-    BUILD_DIR = DIR / "build"
-    DIST_DIR = DIR / "dist"
-    BIN_DIR = DIR / "bin"
+        returned_platform = None
 
-class WINDOWS:
+        mapping.get(kivy_platform, returned_platform)
 
-    DIR = PureWindowsPath(PROJECT.DIR)
+        return returned_platform
 
-    BUILD_DIR = DIR / "build" / "windows"
-    DIST_DIR = DIR / "dist" / "windows"
-    BIN_DIR = DIR / "bin" / "windows"
+    except Exception:
+        import sys
+        if sys.platform.startswith("win"):
+            return "windows"
+        elif sys.platform.startswith("darwin"):
+            return "macos"
+        elif sys.platform.startswith("linux"):
+            return "linux"
+        return "unknown"
 
-    FFMPEG_BIN_PATH = BIN_DIR / "ffmpeg.exe"
-    FFPROBE_BIN_PATH = BIN_DIR / "ffprobe.exe"
-    QUICK_JS_BIN_PATH = BIN_DIR / "qjs.exe"
+class _paths:
 
-    DEST_BIN = "bin/windows"
-    
-    DEFAULT_DOWNLOAD_DIR = get_default_download_dir()
+    EXECUTABLES = ("ffmpeg", "ffprobe", "qjs")
 
-class LINUX:
+    SUPPORTED_PLATFORMS = ("windows", "macos", "linux", "android")
+    PLATFORM: Literal["windows" | "macos" | "linux" | "android"] = None
 
-    DIR = PurePosixPath(PROJECT.DIR)
+    downloads_dir: Path | None = None
 
-    BUILD_DIR = DIR / "build" / "linux"
-    DIST_DIR = DIR / "dist" / "linux"
-    BIN_DIR = DIR / "bin" / "linux"
+    def __init__(self, platformP: str):
 
-    FFMPEG_BIN_PATH = BIN_DIR / "ffmpeg"
-    FFPROBE_BIN_PATH = BIN_DIR / "ffprobe"
-    QUICK_JS_BIN_PATH = BIN_DIR / "qjs"
+        if platformP in self.SUPPORTED_PLATFORMS:
+            self.PLATFORM = platformP
+        else:
+            raise RuntimeError(f"platform {platformP} unsupported. Supported platforms = {self.SUPPORTED_PLATFORMS}")
 
-    DEST_BIN = "bin/linux"
-    
-    DEFAULT_DOWNLOAD_DIR = get_default_download_dir()
-    
-class MACOS:
+        self.downloads_dir = self._default_downloads_dir()
 
-    DIR = PurePosixPath(PROJECT.DIR)
+    def _ensure_dir(self, path: Path) -> Path:
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
-    BUILD_DIR = DIR / "build" / "macos"
-    DIST_DIR = DIR / "dist" / "macos"
-    BIN_DIR = DIR / "bin" / "macos"
+    def _default_downloads_dir(self) -> Path:
+        return self._ensure_dir(self.base_dir() / "downloads")
 
-    FFMPEG_BIN_PATH = BIN_DIR / "ffmpeg"
-    FFPROBE_BIN_PATH = BIN_DIR / "ffprobe"
-    QUICK_JS_BIN_PATH = BIN_DIR / "qjs"
+    def _bin_ext(self) -> str:
+        match self.PLATFORM:
+            case "windows":
+                return ".exe"
+            case _:
+                return ""
 
-    DEST_BIN = "bin/macos"
+    def base(self) -> Path:
+        match self.PLATFORM:
+            case "android":
+                try:
+                    from android.storage import app_storage_path
+                    return self._ensure_dir(Path(app_storage_path()) / "YtDownload")
+                except Exception:
+                    return self._ensure_dir(Path.home() / "YtDownload")
+            case _:
+                return self._ensure_dir(Path(__file__).resolve().parent)
 
-    DEFAULT_DOWNLOAD_DIR = get_default_download_dir()
+    def build(self) -> Path:
+        return self._ensure_dir(self.base_dir() / "build")
 
-class ANDROID:
+    def dist(self) -> Path:
+        return self._ensure_dir(self.base_dir() / "dist")
 
-    from kivy.resources import resource_find
+    def bin(self) -> Path:
+        return self._ensure_dir(self.base_dir() / "bin")
 
-    DIR = PurePosixPath(PROJECT.DIR)
+    def pyinstaller_spec(self) -> Path:
+        return self.base_dir() / "main.spec"
 
-    BUILD_DIR = DIR / "build" / "android"
-    DIST_DIR = DIR / "dist" / "android"
-    BIN_DIR = DIR / "bin" / "android"
+    def set_downloads_dir(self, new_downloads_dir: Path) -> None:
+        self.downloads_dir = new_downloads_dir
 
-    FFMPEG_APK_BIN_PATH = resource_find("bin/android/ffmpeg")
-    FFPROBE_APK_BIN_PATH = resource_find("bin/android/ffprobe")
-    QUICK_JS_APK_BIN_PATH = resource_find("bin/android/qjs-linux-aarch64")
-    
-    FFMPEG_BIN_PATH = None
-    FFPROBE_BIN_PATH = None
-    QUICK_JS_BIN_PATH = None
+    # Executables
 
-    DEST_BIN = "bin/android"
+    def executable(self, executable_name) -> Path:
+        if executable_name not in self.EXECUTABLES:
+            raise RuntimeError(f"executable name {executable_name} invalid. Allowed executable names: {self.EXECUTABLES}")
+        dir = self._ensure_dir(self.bin() / self.PLATFORM)
+        return dir / f"{executable_name}{self._bin_ext()}"
 
-    DEFAULT_DOWNLOAD_DIR = get_default_download_dir()
-    
-PATHS: WINDOWS | LINUX | MACOS = None
+    def packaged_dest_bin(self) -> str:
+        return f"bin/{self.PLATFORM}"
 
-if platform == "win":
-    PATHS = WINDOWS
-elif platform == "darwin":
-    PATHS = MACOS
-elif platform == "linux":
-    PATHS = LINUX
-elif platform == "android":
-    PATHS = ANDROID
-else:
-    raise RuntimeError(f"Unsupported operating system: {platform}, failed to initialise PATHS")
+    def packaged_executable(self, executable_name) -> str:
+        from kivy.resources import resource_find
+        if executable_name not in self.EXECUTABLES:
+            raise RuntimeError(f"executable name {executable_name} invalid. Allowed executable names: {self.EXECUTABLES}")
+
+        dir = Path(self.packaged_dest_bin()) / f"{executable_name}{self._bin_ext()}"
+        result = resource_find(str(dir))
+
+        if not result:
+            raise FileNotFoundError(f"Packaged executable not found: {path}")
+
+        return result
+
+paths = _paths(platformP=platform())

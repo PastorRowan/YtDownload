@@ -9,8 +9,6 @@ import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-import config
-
 def main():
     
     subprocess.run("sudo apt update", shell=True, check=True)

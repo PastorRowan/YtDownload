@@ -1,5 +1,4 @@
 
-
 """
 Builds an APK for android OS
 """
@@ -14,7 +13,7 @@ import config
 
 def main():
 
-    wsl_project_dir = config.PROJECT.DIR
+    wsl_project_dir = str(config.paths.base())
 
     print("wsl_project_dir: ", wsl_project_dir)
 

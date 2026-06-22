@@ -7,8 +7,6 @@ from screens.SettingsScreen.SettingsScreen import SettingsScreen
 
 import Colors
 
-import platform
-
 import config
 
 import os
@@ -22,31 +20,15 @@ def setup_android_binaries():
 
     user_dir = app_storage_path()
 
-    binaries = {
-        "ffmpeg": (
-            config.ANDROID.FFMPEG_APK_BIN_PATH,
-            os.path.join(user_dir, "ffmpeg"),
-        ),
-        "ffprobe": (
-            config.ANDROID.FFPROBE_APK_BIN_PATH,
-            os.path.join(user_dir, "ffprobe"),
-        ),
-        "qjs": (
-            config.ANDROID.QUICK_JS_APK_BIN_PATH,
-            os.path.join(user_dir, "qjs"),
-        )
-    }
+    executables = config.paths.EXECUTABLES
 
-    for _, (src, dst) in binaries.items():
-        if not os.path.exists(dst):
-            shutil.copy2(src, dst)
+    for executableName in executables:
 
+        source = config.paths.packaged_executable(executableName)
+        destination = config.paths.executable(executableName)
+
+        shutil.copy2(source, destination)
         os.chmod(dst, 0o755)
-
-    # Save usable paths back into config if desired
-    config.ANDROID.FFMPEG_BIN_PATH = binaries["ffmpeg"][1]
-    config.ANDROID.FFPROBE_BIN_PATH = binaries["ffprobe"][1]
-    config.ANDROID.QUICK_JS_BIN_PATH = binaries["qjs"][1]
     
 class Application(MDApp):
 
