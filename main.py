@@ -28,7 +28,7 @@ def setup_android_binaries():
         destination = config.paths.executable(executableName)
 
         shutil.copy2(source, destination)
-        os.chmod(dst, 0o755)
+        os.chmod(destination, 0o755)
     
 class Application(MDApp):
 

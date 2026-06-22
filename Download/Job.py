@@ -269,10 +269,31 @@ class Job(EventDispatcher):
 
         try:
 
+            print("str(config.paths.bin_platform()): ", str(config.paths.bin_platform()))
+
+            print("str(config.paths.executable(qjs)): ", str(config.paths.executable("qjs")))
+
+            import subprocess
+
+            subprocess.run([
+                str(config.paths.bin_platform() / "ffmpeg"),
+                "-version"
+            ])
+
+            subprocess.run([
+                str(config.paths.bin_platform() / "ffprobe"),
+                "-version"
+            ])
+
+            subprocess.run([
+                str(config.paths.bin_platform() / "qjs"),
+                "-e \"print('hello')\""
+            ])
+
             ydl_download_options = {
                 # Prevents yt-dlp from using overwritten kivy sys.error object
                 "logger": helpers.YTDLPLogger(),
-                "ffmpeg_location": str(config.paths.executable("ffmpeg")),
+                "ffmpeg_location": str(config.paths.bin_platform()),
                 "js_runtimes": {
                     "quickjs": {
                         "path": str(config.paths.executable("qjs"))

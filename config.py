@@ -88,11 +88,13 @@ class _paths:
 
     # Executables
 
+    def bin_platform(self) -> Path:
+        return self._ensure_dir(self.bin() / self.PLATFORM)
+
     def executable(self, executable_name) -> Path:
         if executable_name not in self.EXECUTABLES:
             raise RuntimeError(f"executable name {executable_name} invalid. Allowed executable names: {self.EXECUTABLES}")
-        dir = self._ensure_dir(self.bin() / self.PLATFORM)
-        return dir / f"{executable_name}{self._bin_ext()}"
+        return self.bin_platform() / f"{executable_name}{self._bin_ext()}"
 
     def packaged_dest_bin(self) -> str:
         return f"bin/{self.PLATFORM}"

@@ -7,13 +7,13 @@ from pathlib import Path
 import subprocess
 import sys
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
+parent_dir = str(Path(__file__).resolve().parents[1])
 
-import config
+sys.path.append(parent_dir)
 
 def main():
 
-    wsl_project_dir = str(config.paths.base())
+    wsl_project_dir = parent_dir
 
     print("wsl_project_dir: ", wsl_project_dir)
 
