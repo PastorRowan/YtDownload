@@ -15,6 +15,8 @@ import os
 
 import shutil
 
+from kivy.utils import platform
+
 def setup_android_binaries():
     from android.storage import app_storage_path
 
@@ -63,6 +65,9 @@ class Application(MDApp):
         return sm
 
 if __name__ == "__main__":
+    
+    if platform == "android":
+        setup_android_binaries()
 
     app = Application()
 

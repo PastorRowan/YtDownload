@@ -17,23 +17,23 @@ class WINDOWS:
 
     DIR = PureWindowsPath(PROJECT.DIR)
 
-    BUILD_DIR = DIR / "windows"
-    DIST_DIR = DIR / "windows"
-    BIN_DIR = DIR / "windows"
+    BUILD_DIR = DIR / "build" / "windows"
+    DIST_DIR = DIR / "dist" / "windows"
+    BIN_DIR = DIR / "bin" / "windows"
 
     FFMPEG_BIN_PATH = BIN_DIR / "ffmpeg.exe"
     FFPROBE_BIN_PATH = BIN_DIR / "ffprobe.exe"
     QUICK_JS_BIN_PATH = BIN_DIR / "qjs.exe"
 
     DEST_BIN = "bin/windows"
-    
+
 class LINUX:
 
     DIR = PurePosixPath(PROJECT.DIR)
 
-    BUILD_DIR = DIR / "linux"
-    DIST_DIR = DIR / "linux"
-    BIN_DIR = DIR / "linux"
+    BUILD_DIR = DIR / "build" / "linux"
+    DIST_DIR = DIR / "dist" / "linux"
+    BIN_DIR = DIR / "bin" / "linux"
 
     FFMPEG_BIN_PATH = BIN_DIR / "ffmpeg"
     FFPROBE_BIN_PATH = BIN_DIR / "ffprobe"
@@ -45,9 +45,9 @@ class MACOS:
 
     DIR = PurePosixPath(PROJECT.DIR)
 
-    BUILD_DIR = DIR / "macos"
-    DIST_DIR = DIR / "macos"
-    BIN_DIR = DIR / "macos"
+    BUILD_DIR = DIR / "build" / "macos"
+    DIST_DIR = DIR / "dist" / "macos"
+    BIN_DIR = DIR / "bin" / "macos"
 
     FFMPEG_BIN_PATH = BIN_DIR / "ffmpeg"
     FFPROBE_BIN_PATH = BIN_DIR / "ffprobe"
@@ -56,19 +56,17 @@ class MACOS:
     DEST_BIN = "bin/macos"
 
 class ANDROID:
-    #from kivy.resources import resource_find
+    from kivy.resources import resource_find
 
     DIR = PurePosixPath(PROJECT.DIR)
 
-    BUILD_DIR = DIR / "android"
-    DIST_DIR = DIR / "android"
-    BIN_DIR = DIR / "android"
+    BUILD_DIR = DIR / "build" / "android"
+    DIST_DIR = DIR / "dist" / "android"
+    BIN_DIR = DIR / "bin" / "android"
 
-    """
     FFMPEG_APK_BIN_PATH = resource_find("bin/android/ffmpeg")
     FFPROBE_APK_BIN_PATH = resource_find("bin/android/ffprobe")
     QUICK_JS_APK_BIN_PATH = resource_find("bin/android/qjs-linux-aarch64")
-    """
     
     FFMPEG_BIN_PATH = None
     FFPROBE_BIN_PATH = None
