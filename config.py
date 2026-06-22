@@ -1,4 +1,6 @@
 
+from typing import Literal
+
 from pathlib import Path
 
 def platform():
@@ -14,11 +16,7 @@ def platform():
             "android": "android",
         }
 
-        returned_platform = None
-
-        mapping.get(kivy_platform, returned_platform)
-
-        return returned_platform
+        return mapping.get(kivy_platform, "unknown")
 
     except Exception:
         import sys
@@ -35,7 +33,7 @@ class _paths:
     EXECUTABLES = ("ffmpeg", "ffprobe", "qjs")
 
     SUPPORTED_PLATFORMS = ("windows", "macos", "linux", "android")
-    PLATFORM: Literal["windows" | "macos" | "linux" | "android"] = None
+    PLATFORM: Literal["windows", "macos", "linux", "android"] = None
 
     downloads_dir: Path | None = None
 
@@ -53,7 +51,7 @@ class _paths:
         return path
 
     def _default_downloads_dir(self) -> Path:
-        return self._ensure_dir(self.base_dir() / "downloads")
+        return self._ensure_dir(self.base() / "downloads")
 
     def _bin_ext(self) -> str:
         match self.PLATFORM:
@@ -74,16 +72,16 @@ class _paths:
                 return self._ensure_dir(Path(__file__).resolve().parent)
 
     def build(self) -> Path:
-        return self._ensure_dir(self.base_dir() / "build")
+        return self._ensure_dir(self.base() / "build")
 
     def dist(self) -> Path:
-        return self._ensure_dir(self.base_dir() / "dist")
+        return self._ensure_dir(self.base() / "dist")
 
     def bin(self) -> Path:
-        return self._ensure_dir(self.base_dir() / "bin")
+        return self._ensure_dir(self.base() / "bin")
 
     def pyinstaller_spec(self) -> Path:
-        return self.base_dir() / "main.spec"
+        return self.base() / "main.spec"
 
     def set_downloads_dir(self, new_downloads_dir: Path) -> None:
         self.downloads_dir = new_downloads_dir
@@ -108,7 +106,7 @@ class _paths:
         result = resource_find(str(dir))
 
         if not result:
-            raise FileNotFoundError(f"Packaged executable not found: {path}")
+            raise FileNotFoundError(f"Packaged executable not found: {dir}")
 
         return result
 
