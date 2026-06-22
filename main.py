@@ -24,15 +24,15 @@ def setup_android_binaries():
 
     binaries = {
         "ffmpeg": (
-            config.ANDROID.FFMPEG_BIN_PATH,
+            config.ANDROID.FFMPEG_APK_BIN_PATH,
             os.path.join(user_dir, "ffmpeg"),
         ),
         "ffprobe": (
-            config.ANDROID.FFPROBE_BIN_PATH,
+            config.ANDROID.FFPROBE_APK_BIN_PATH,
             os.path.join(user_dir, "ffprobe"),
         ),
         "qjs": (
-            config.ANDROID.QUICK_JS_BIN_PATH,
+            config.ANDROID.QUICK_JS_APK_BIN_PATH,
             os.path.join(user_dir, "qjs"),
         )
     }
