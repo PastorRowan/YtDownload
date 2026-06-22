@@ -1,6 +1,23 @@
 
-import platform
+from kivy.utils import platform
 from pathlib import Path, PureWindowsPath, PurePosixPath
+
+def get_default_download_dir():
+    
+    download_dir = None
+    
+    if platform == "android":
+        try:
+            base = "/storage/emulated/0/Download"
+            download_dir = Path(base) / "YtDownload"
+            download_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            from android.storage import app_storage_path
+            download_dir = Path(app_storage_path()) / "downloads"
+    else:
+        return Path.home() / "Downloads" / "YtDownload"
+    
+    return download_dir
 
 class PROJECT:
 
@@ -26,6 +43,8 @@ class WINDOWS:
     QUICK_JS_BIN_PATH = BIN_DIR / "qjs.exe"
 
     DEST_BIN = "bin/windows"
+    
+    DEFAULT_DOWNLOAD_DIR = get_default_download_dir()
 
 class LINUX:
 
@@ -41,6 +60,8 @@ class LINUX:
 
     DEST_BIN = "bin/linux"
     
+    DEFAULT_DOWNLOAD_DIR = get_default_download_dir()
+    
 class MACOS:
 
     DIR = PurePosixPath(PROJECT.DIR)
@@ -55,7 +76,10 @@ class MACOS:
 
     DEST_BIN = "bin/macos"
 
+    DEFAULT_DOWNLOAD_DIR = get_default_download_dir()
+
 class ANDROID:
+
     from kivy.resources import resource_find
 
     DIR = PurePosixPath(PROJECT.DIR)
@@ -73,18 +97,18 @@ class ANDROID:
     QUICK_JS_BIN_PATH = None
 
     DEST_BIN = "bin/android"
+
+    DEFAULT_DOWNLOAD_DIR = get_default_download_dir()
     
 PATHS: WINDOWS | LINUX | MACOS = None
 
-system = platform.system().lower()
-
-if system == "windows":
+if platform == "win":
     PATHS = WINDOWS
-elif system == "darwin":
+elif platform == "darwin":
     PATHS = MACOS
-elif system == "linux":
+elif platform == "linux":
     PATHS = LINUX
-elif system == "android":
+elif platform == "android":
     PATHS = ANDROID
 else:
-    raise RuntimeError(f"Unsupported operating system: {system}, failed to initialise PATHS")
+    raise RuntimeError(f"Unsupported operating system: {platform}, failed to initialise PATHS")

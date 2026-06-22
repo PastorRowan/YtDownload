@@ -23,6 +23,8 @@ from . import (
     Types
 )
 
+import os
+
 class Paused(Exception):
     pass
 
@@ -286,7 +288,11 @@ class Job(EventDispatcher):
                 },
                 "retries": 10,
                 "fragment_retries": 10,
-                "outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
+                #"outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
+                "outtmpl": os.path.join(
+                    str(config.PATHS.DEFAULT_DOWNLOAD_DIR),
+                    "%(title)s [%(id)s].%(ext)s"
+                ),
                 "format": "bestvideo+bestaudio/best",
                 "merge_output_format": "mp4",
                 # leave default for ffmpeg merge for video and audio format
@@ -308,7 +314,7 @@ class Job(EventDispatcher):
             elif self.downloadType == "audio":
                 ydl_download_options["format"] = f"ba*[abr<={self.abr}]/ba"
                 ydl_download_options["merge_output_format"] = self.audioExt
-                ydl_download_options["postprocessors"] = []
+                #ydl_download_options["postprocessors"] = []
 
             with yt_dlp.YoutubeDL(ydl_download_options) as ydl_download: 
 
