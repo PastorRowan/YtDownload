@@ -273,106 +273,69 @@ class Job(EventDispatcher):
 
             print("str(config.paths.executable(qjs)): ", str(config.paths.executable("qjs")))
 
-            for exe in ("ffmpeg", "ffprobe", "qjs"):
-                path = config.paths.executable(exe)
+            is_android = config.platform() == "android"
 
-                print(f"\n=== {exe} ===")
-                print("path:", path)
-                print("exists:", os.path.exists(path))
-                print("isfile:", os.path.isfile(path))
-                print("x_ok:", os.access(path, os.X_OK))
-
-                if os.path.exists(path):
-                    print("size:", os.path.getsize(path))
-
-            import subprocess
-
-            ffmpegResult = subprocess.run(
-                [
-                    str(config.paths.bin_platform() / "ffmpeg"),
-                    "-version"
-                ],
-                capture_output=True,
-                text=True
-            )
-
-            print("ffmpegResult:", ffmpegResult.returncode)
-            print("ffmpeg stdout:", ffmpegResult.stdout)
-            print("ffmpeg stderr:", ffmpegResult.stderr)
-
-            ffprobeResult = subprocess.run(
-                [
-                    str(config.paths.bin_platform() / "ffprobe"),
-                    "-version"
-                ],
-                capture_output=True,
-                text=True
-            )
-
-            print("ffprobeResult:", ffprobeResult.returncode)
-            print("ffprobe stdout:", ffprobeResult.stdout)
-            print("ffprobe stderr:", ffprobeResult.stderr)
-
-            qjsResult = subprocess.run(
-                [
-                    str(config.paths.bin_platform() / "qjs"),
-                    "-e",
-                    "console.log('hello')"
-                ],
-                capture_output=True,
-                text=True
-            )
-
-            print("qjsResult:", qjsResult.returncode)
-            print("qjs stdout:", qjsResult.stdout)
-            print("qjs stderr:", qjsResult.stderr)
-
-            ydl_download_options = {
-                # Prevents yt-dlp from using overwritten kivy sys.error object
+            base_options = {
                 "logger": helpers.YTDLPLogger(),
-                "ffmpeg_location": str(config.paths.bin_platform()),
-                "js_runtimes": {
-                    "quickjs": {
-                        "path": str(config.paths.executable("qjs"))
-                    }
-                },
-                "remote_components": [
-                    "ejs:github"
-                ],
-                "concurrent_fragments": 16,
-                "downloader": "aria2c",
-                "downloader_args": {
-                    "aria2c": "-x 16 -s 16 -k 1M"
-                },
-                "retries": 10,
-                "fragment_retries": 10,
-                #"outtmpl": r"downloads\%(title)s [%(id)s].%(ext)s",
                 "outtmpl": os.path.join(
                     str(config.paths.downloads_dir),
                     "%(title)s [%(id)s].%(ext)s"
                 ),
-                "format": "bestvideo+bestaudio/best",
-                "merge_output_format": "mp4",
-                # leave default for ffmpeg merge for video and audio format
-                # "postprocessors": [],
-                "postprocessor_args": {
-                    "ffmpeg": ["-threads", "4"]
-                },
                 "no_color": True,
-                "progress_hooks": [progressHook]
+                "progress_hooks": [progressHook],
+                "retries": 10,
+                "fragment_retries": 10,
             }
-
-            if self.downloadType == "video":
-                ydl_download_options["format"] = (
-                    f"bv*[height<={self.videoHeight}]+"
-                    f"ba*[abr<={self.abr}]"
-                    f"/b[height<={self.videoHeight}]"
-                )
-                ydl_download_options["merge_output_format"] = self.videoExt
-            elif self.downloadType == "audio":
-                ydl_download_options["format"] = f"ba*[abr<={self.abr}]/ba"
-                ydl_download_options["merge_output_format"] = self.audioExt
-                #ydl_download_options["postprocessors"] = []
+            
+            ydl_download_options = {}
+            
+            if is_android:
+                ydl_download_options = {
+                    **base_options,
+                    "downloader": None,
+                }
+                if self.downloadType == "video":
+                    ydl_download_options["format"] = (
+                        f"best[height<={self.videoHeight}][ext=mp4]/best[ext=mp4]/best"
+                    )
+                elif self.downloadType == "audio":
+                    ydl_download_options["format"] = (
+                        f"bestaudio[abr<={self.abr}][ext=m4a]/bestaudio[ext=m4a]/bestaudio"
+                    )
+            elif not is_android:
+                ydl_download_options = {
+                    # Prevents yt-dlp from using overwritten kivy sys.error object
+                    "ffmpeg_location": str(config.paths.executable("ffmpeg")),
+                    "js_runtimes": {
+                        "quickjs": {
+                            "path": str(config.paths.executable("qjs"))
+                        }
+                    },
+                    "remote_components": [
+                        "ejs:github"
+                    ],
+                    "concurrent_fragments": 16,
+                    "downloader": "aria2c",
+                    "downloader_args": {
+                        "aria2c": "-x 16 -s 16 -k 1M"
+                    },
+                    # leave default for ffmpeg merge for video and audio format
+                    # "postprocessors": [],
+                    "postprocessor_args": {
+                        "ffmpeg": ["-threads", "4"]
+                    },
+                }
+                
+                if self.downloadType == "video":
+                    ydl_download_options["format"] = (
+                        f"bv*[height<={self.videoHeight}]+"
+                        f"ba*[abr<={self.abr}]"
+                        f"/b[height<={self.videoHeight}]"
+                    )
+                    ydl_download_options["merge_output_format"] = self.videoExt
+                elif self.downloadType == "audio":
+                    ydl_download_options["format"] = f"ba*[abr<={self.abr}]/ba"
+                    ydl_download_options["merge_output_format"] = self.audioExt
 
             with yt_dlp.YoutubeDL(ydl_download_options) as ydl_download: 
 

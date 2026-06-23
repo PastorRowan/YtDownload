@@ -51,7 +51,22 @@ class _paths:
         return path
 
     def _default_downloads_dir(self) -> Path:
-        return self._ensure_dir(self.base() / "downloads")
+        match self.PLATFORM:
+            case "android":
+                try:
+                    from jnius import autoclass
+                    Environment = autoclass("android.os.Environment")
+
+                    downloads_dir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS
+                    ).getAbsolutePath()
+
+                    return self._ensure_dir(Path(downloads_dir) / "ytdownload")
+                except Exception:
+                    from android.storage import app_storage_path
+                    return self._ensure_dir(Path(app_storage_path()) / "YtDownload")
+            case _:
+                return self._ensure_dir(self.base() / "downloads")
 
     def _bin_ext(self) -> str:
         match self.PLATFORM:
