@@ -27,7 +27,11 @@ def setup_android_binaries():
         source = config.paths.packaged_executable(executableName)
         destination = config.paths.executable(executableName)
 
-        shutil.copy2(source, destination)
+        # Copy only if missing
+        if not os.path.exists(destination):
+            shutil.copy2(source, destination)
+
+        # Always ensure executable permissions
         os.chmod(destination, 0o755)
     
 class Application(MDApp):

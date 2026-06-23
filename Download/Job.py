@@ -273,22 +273,59 @@ class Job(EventDispatcher):
 
             print("str(config.paths.executable(qjs)): ", str(config.paths.executable("qjs")))
 
+            for exe in ("ffmpeg", "ffprobe", "qjs"):
+                path = config.paths.executable(exe)
+
+                print(f"\n=== {exe} ===")
+                print("path:", path)
+                print("exists:", os.path.exists(path))
+                print("isfile:", os.path.isfile(path))
+                print("x_ok:", os.access(path, os.X_OK))
+
+                if os.path.exists(path):
+                    print("size:", os.path.getsize(path))
+
             import subprocess
 
-            subprocess.run([
-                str(config.paths.bin_platform() / "ffmpeg"),
-                "-version"
-            ])
+            ffmpegResult = subprocess.run(
+                [
+                    str(config.paths.bin_platform() / "ffmpeg"),
+                    "-version"
+                ],
+                capture_output=True,
+                text=True
+            )
 
-            subprocess.run([
-                str(config.paths.bin_platform() / "ffprobe"),
-                "-version"
-            ])
+            print("ffmpegResult:", ffmpegResult.returncode)
+            print("ffmpeg stdout:", ffmpegResult.stdout)
+            print("ffmpeg stderr:", ffmpegResult.stderr)
 
-            subprocess.run([
-                str(config.paths.bin_platform() / "qjs"),
-                "-e \"print('hello')\""
-            ])
+            ffprobeResult = subprocess.run(
+                [
+                    str(config.paths.bin_platform() / "ffprobe"),
+                    "-version"
+                ],
+                capture_output=True,
+                text=True
+            )
+
+            print("ffprobeResult:", ffprobeResult.returncode)
+            print("ffprobe stdout:", ffprobeResult.stdout)
+            print("ffprobe stderr:", ffprobeResult.stderr)
+
+            qjsResult = subprocess.run(
+                [
+                    str(config.paths.bin_platform() / "qjs"),
+                    "-e",
+                    "console.log('hello')"
+                ],
+                capture_output=True,
+                text=True
+            )
+
+            print("qjsResult:", qjsResult.returncode)
+            print("qjs stdout:", qjsResult.stdout)
+            print("qjs stderr:", qjsResult.stderr)
 
             ydl_download_options = {
                 # Prevents yt-dlp from using overwritten kivy sys.error object
@@ -356,6 +393,8 @@ class Job(EventDispatcher):
         except Exception as e:
 
             error = e
+
+            print(str(error))
 
             def updateStatusAndError(dt):
                 self.status = "error"

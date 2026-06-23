@@ -112,4 +112,5 @@ class _paths:
 
         return result
 
-paths = _paths(platformP=platform())
+PLATFORM = platform()
+paths = _paths(platformP=PLATFORM)
