@@ -3,6 +3,8 @@ from typing import Literal
 
 from pathlib import Path
 
+import os
+
 def platform():
 
     try:
@@ -70,6 +72,8 @@ class _paths:
 
     def _bin_ext(self) -> str:
         match self.PLATFORM:
+            case "android":
+                return ".so"
             case "windows":
                 return ".exe"
             case _:
@@ -94,6 +98,30 @@ class _paths:
 
     def bin(self) -> Path:
         return self._ensure_dir(self.base() / "bin")
+    
+    def ytdlp_cache_dir(self) -> Path:
+        
+        base_cache: Path | None = None
+        
+        match self.PLATFORM:
+            case "android":
+                from android.storage import app_storage_path
+
+                base_cache = Path(app_storage_path()) / "cache" / "yt-dlp"
+                base_cache.mkdir(parents=True, exist_ok=True)
+
+            case _:
+                base_cache = self.base() / "cache" / "yt-dlp"
+                base_cache.mkdir(parents=True, exist_ok=True)
+    
+        # Force yt-dlp to use this
+        os.environ["XDG_CACHE_HOME"] = str(base_cache)
+        # extra safety (some builds respect this)
+        os.environ["YT_DLP_CACHE_DIR"] = str(base_cache)
+        
+        print("base_cache: ", base_cache)
+            
+        return base_cache
 
     def pyinstaller_spec(self) -> Path:
         return self.base() / "main.spec"
@@ -102,30 +130,58 @@ class _paths:
         self.downloads_dir = new_downloads_dir
 
     # Executables
-
     def bin_platform(self) -> Path:
-        return self._ensure_dir(self.bin() / self.PLATFORM)
+        match self.PLATFORM:
+            case "android":
+                from android import mActivity
+                app_info = mActivity.getApplicationInfo()
+                native_lib_dir = app_info.nativeLibraryDir
+                print("native_lib_dir: ", native_lib_dir)
+                return Path(native_lib_dir)
+            case _:
+                return self._ensure_dir(self.bin() / self.PLATFORM)
 
     def executable(self, executable_name) -> Path:
+
         if executable_name not in self.EXECUTABLES:
             raise RuntimeError(f"executable name {executable_name} invalid. Allowed executable names: {self.EXECUTABLES}")
-        return self.bin_platform() / f"{executable_name}{self._bin_ext()}"
+
+        match self.PLATFORM:
+            case "android":
+                return self.bin_platform() / f"lib{executable_name}{self._bin_ext()}"
+            case _:
+                return self.bin_platform() / f"{executable_name}{self._bin_ext()}"
 
     def packaged_dest_bin(self) -> str:
         return f"bin/{self.PLATFORM}"
 
     def packaged_executable(self, executable_name) -> str:
-        from kivy.resources import resource_find
+
         if executable_name not in self.EXECUTABLES:
             raise RuntimeError(f"executable name {executable_name} invalid. Allowed executable names: {self.EXECUTABLES}")
 
-        dir = Path(self.packaged_dest_bin()) / f"{executable_name}{self._bin_ext()}"
-        result = resource_find(str(dir))
+        match self.PLATFORM:
+            case "android":
+                from kivy.resources import resource_find
 
-        if not result:
-            raise FileNotFoundError(f"Packaged executable not found: {dir}")
+                resourcePath = Path(self.packaged_dest_bin()) / f"{executable_name}"
+                result = resource_find(str(resourcePath))
 
-        return result
+                if not result:
+                    raise FileNotFoundError(f"Packaged executable not found: {resourcePath}")
+
+                return result
+
+            case _:
+                from kivy.resources import resource_find
+
+                resourcePath = Path(self.packaged_dest_bin()) / f"{executable_name}{self._bin_ext()}"
+                result = resource_find(str(resourcePath))
+
+                if not result:
+                    raise FileNotFoundError(f"Packaged executable not found: {resourcePath}")
+
+                return result
 
 PLATFORM = platform()
 paths = _paths(platformP=PLATFORM)

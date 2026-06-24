@@ -271,7 +271,7 @@ class Job(EventDispatcher):
 
             print("str(config.paths.bin_platform()): ", str(config.paths.bin_platform()))
 
-            print("str(config.paths.executable(qjs)): ", str(config.paths.executable("qjs")))
+            print("str(config.paths.executable(ffmpeg)): ", str(config.paths.executable("ffmpeg")))
 
             is_android = config.platform() == "android"
 
@@ -281,61 +281,47 @@ class Job(EventDispatcher):
                     str(config.paths.downloads_dir),
                     "%(title)s [%(id)s].%(ext)s"
                 ),
+                "cachedir": str(config.paths.ytdlp_cache_dir()),
                 "no_color": True,
                 "progress_hooks": [progressHook],
                 "retries": 10,
                 "fragment_retries": 10,
             }
-            
-            ydl_download_options = {}
-            
-            if is_android:
-                ydl_download_options = {
-                    **base_options,
-                    "downloader": None,
+
+            ydl_download_options = {
+                **base_options,
+                # Prevents yt-dlp from using overwritten kivy sys.error object
+                "ffmpeg_location": str(config.paths.executable("ffmpeg")),
+                "js_runtimes": {
+                    "quickjs": {
+                        "path": str(config.paths.executable("qjs"))
+                    }
+                },
+                "remote_components": [
+                    "ejs:github"
+                ],
+                "concurrent_fragments": 16,
+                "downloader": "aria2c",
+                "downloader_args": {
+                    "aria2c": "-x 16 -s 16 -k 1M"
+                },
+                # leave default for ffmpeg merge for video and audio format
+                # "postprocessors": [],
+                "postprocessor_args": {
+                    "ffmpeg": ["-threads", "4"]
                 }
-                if self.downloadType == "video":
-                    ydl_download_options["format"] = (
-                        f"best[height<={self.videoHeight}][ext=mp4]/best[ext=mp4]/best"
-                    )
-                elif self.downloadType == "audio":
-                    ydl_download_options["format"] = (
-                        f"bestaudio[abr<={self.abr}][ext=m4a]/bestaudio[ext=m4a]/bestaudio"
-                    )
-            elif not is_android:
-                ydl_download_options = {
-                    # Prevents yt-dlp from using overwritten kivy sys.error object
-                    "ffmpeg_location": str(config.paths.executable("ffmpeg")),
-                    "js_runtimes": {
-                        "quickjs": {
-                            "path": str(config.paths.executable("qjs"))
-                        }
-                    },
-                    "remote_components": [
-                        "ejs:github"
-                    ],
-                    "concurrent_fragments": 16,
-                    "downloader": "aria2c",
-                    "downloader_args": {
-                        "aria2c": "-x 16 -s 16 -k 1M"
-                    },
-                    # leave default for ffmpeg merge for video and audio format
-                    # "postprocessors": [],
-                    "postprocessor_args": {
-                        "ffmpeg": ["-threads", "4"]
-                    },
-                }
+            }
                 
-                if self.downloadType == "video":
-                    ydl_download_options["format"] = (
-                        f"bv*[height<={self.videoHeight}]+"
-                        f"ba*[abr<={self.abr}]"
-                        f"/b[height<={self.videoHeight}]"
-                    )
-                    ydl_download_options["merge_output_format"] = self.videoExt
-                elif self.downloadType == "audio":
-                    ydl_download_options["format"] = f"ba*[abr<={self.abr}]/ba"
-                    ydl_download_options["merge_output_format"] = self.audioExt
+            if self.downloadType == "video":
+                ydl_download_options["format"] = (
+                    f"bv*[height<={self.videoHeight}]+"
+                    f"ba*[abr<={self.abr}]"
+                    f"/b[height<={self.videoHeight}]"
+                )
+                ydl_download_options["merge_output_format"] = self.videoExt
+            elif self.downloadType == "audio":
+                ydl_download_options["format"] = f"ba*[abr<={self.abr}]/ba"
+                ydl_download_options["merge_output_format"] = self.audioExt
 
             with yt_dlp.YoutubeDL(ydl_download_options) as ydl_download: 
 

@@ -22,9 +22,20 @@ main.spec
 
 *.exe
 *.apk
+*.so
 
-bin/android/*
-!bin/android/.gitkeep
+libs/arm64-v8a/*
+!libs/arm64-v8a/.gitkeep
+!libs/arm64-v8a/README.MD
+
+
+libs/macos/*
+!libs/macos/.gitkeep
+!libs/macos/README.MD
+
+libs/windows/*
+!libs/windows/.gitkeep
+!libs/windows/README.MD
 
 bin/macos/*
 !bin/macos/.gitkeep
