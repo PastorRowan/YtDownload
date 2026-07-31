@@ -32,6 +32,7 @@ from kivy.properties import (
     ObjectProperty,
     ListProperty
 )
+from kivy.metrics import dp
 
 from .Job import Job
 
@@ -49,6 +50,12 @@ class JobAudioFormatDialogue(MDDialog):
     selectedAudioAbrIndex: int = NumericProperty(Job.DEFAULT_ABR_INDEX)
     _audioAbrDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
+    def getSelectedAudioExt(self):
+        return self.job.audioExts[self.selectedAudioExtIndex]
+
+    def getSelectedAudioAbr(self):
+        return self.job.abrs[self.selectedAudioAbrIndex]
+
     def __init__(self, **kwargs):
         super().__init__(
             orientation="vertical",
@@ -56,7 +63,7 @@ class JobAudioFormatDialogue(MDDialog):
         )
 
         self.audioExtDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.job.audioExts[self.selectedAudioExtIndex]
+            text=self.getSelectedAudioExt()
         )
 
         self.audioExtDropDownMenuButton = MDListItem(
@@ -80,7 +87,7 @@ class JobAudioFormatDialogue(MDDialog):
         )
 
         self.audioAbrDropDownMenuButtonText = MDListItemSupportingText(
-            text=f"{self.job.abrs[self.selectedAudioAbrIndex]}kbps"
+            text=f"{self.getSelectedAudioAbr()}kbps"
         )
 
         self.audioAbrDropDownMenuButton = MDListItem(
@@ -196,6 +203,7 @@ class JobAudioFormatDialogue(MDDialog):
         for index, audioExt in enumerate(self.job.audioExts):
             self._audioExtDropDownMenuItems.append({
                 "text": audioExt,
+                "height": dp(36),
                 "on_release": lambda i=index: _selectAudioExtIndex(i)
             })
 
@@ -212,16 +220,19 @@ class JobAudioFormatDialogue(MDDialog):
         for index, audioAbr in enumerate(self.job.abrs):
             self._audioAbrDropDownMenuItems.append({
                 "text": f"{audioAbr}kbps",
+                "height": dp(36),
                 "on_release": lambda i=index: _selectAudioAbrIndex(i)
             })
 
     def _onSelectedAudioExtIndex(self, instance, value):
-        audioExt = self.job.audioExts[value]
-        self.audioExtDropDownMenuButtonText.text = audioExt
+        selectedAudioExt = self.getSelectedAudioExt()
+        self.audioExtDropDownMenuButtonText.text = selectedAudioExt
+        self.job.audioExt = selectedAudioExt
 
     def _onSelectedAudioAbrIndex(self, instance, value) -> None:
-        abr = self.job.abrs[value]
-        self.audioAbrDropDownMenuButtonText.text = f"{abr}kbps"
+        selectedAbr = self.getSelectedAudioAbr()
+        self.audioAbrDropDownMenuButtonText.text = f"{selectedAbr}kbps"
+        self.job.abr = selectedAbr
 
     def _onAudioExtDropDownMenuButtonRelease(self):
 
@@ -251,7 +262,7 @@ class JobAudioFormatDialogue(MDDialog):
 
         Clock.schedule_once(openMenu)
 
-    def on_confirm(self):
+    def on_confirm(self, data):
         """
         Default handler required by Kivy.
         Override or bind to this event externally.
@@ -260,13 +271,10 @@ class JobAudioFormatDialogue(MDDialog):
 
     def _on_confirm(self):
 
-        selectedExt = self.job.audioExts[self.selectedAudioExtIndex]
-        selectedAbr = self.job.abrs[self.selectedAudioAbrIndex]
-
         self.dispatch(
             "on_confirm",
             {
-                "ext": selectedExt,
-                "abr": selectedAbr
+                "ext": self.getSelectedAudioExt(),
+                "abr": self.getSelectedAudioAbr()
             }
         )

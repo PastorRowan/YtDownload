@@ -67,8 +67,12 @@ class _paths:
                 except Exception:
                     from android.storage import app_storage_path
                     return self._ensure_dir(Path(app_storage_path()) / "YtDownload")
+            case "windows":
+                downloads_dir = Path.home() / "Downloads"
+                return self._ensure_dir(downloads_dir / "YtDownload")
             case _:
-                return self._ensure_dir(self.base() / "downloads")
+                downloads_dir = Path.home() / "Downloads"
+                return self._ensure_dir(downloads_dir / "YtDownload")
 
     def _bin_ext(self) -> str:
         match self.PLATFORM:
@@ -97,7 +101,7 @@ class _paths:
         return self._ensure_dir(self.base() / "dist")
 
     def bin(self) -> Path:
-        return self._ensure_dir(self.base() / "bin")
+        return self._ensure_dir(self.base() / "libs")
     
     def ytdlp_cache_dir(self) -> Path:
         
@@ -122,9 +126,6 @@ class _paths:
         print("base_cache: ", base_cache)
             
         return base_cache
-
-    def pyinstaller_spec(self) -> Path:
-        return self.base() / "main.spec"
 
     def set_downloads_dir(self, new_downloads_dir: Path) -> None:
         self.downloads_dir = new_downloads_dir
@@ -153,7 +154,7 @@ class _paths:
                 return self.bin_platform() / f"{executable_name}{self._bin_ext()}"
 
     def packaged_dest_bin(self) -> str:
-        return f"bin/{self.PLATFORM}"
+        return f"libs/{self.PLATFORM}"
 
     def packaged_executable(self, executable_name) -> str:
 
@@ -182,6 +183,15 @@ class _paths:
                     raise FileNotFoundError(f"Packaged executable not found: {resourcePath}")
 
                 return result
+
+    def pyinstaller_spec(self) -> Path:
+        return self._ensure_dir(self.base() / "main.spec")
+
+    def pyinstaller_workpath_dir(self) -> Path:
+        return self._ensure_dir(self.base() / "pyinstaller_build")
+
+    def dist_dir(self) -> Path:
+        return self._ensure_dir(self.base() / "dist")
 
 PLATFORM = platform()
 paths = _paths(platformP=PLATFORM)

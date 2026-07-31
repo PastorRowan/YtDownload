@@ -32,6 +32,7 @@ from kivy.properties import (
     ObjectProperty,
     ListProperty
 )
+from kivy.metrics import dp
 
 from .Job import Job
 
@@ -49,6 +50,12 @@ class JobVideoFormatDialogue(MDDialog):
     selectedVideoHeightIndex: int = NumericProperty(Job.DEFAULT_VIDEO_HEIGHT_INDEX)
     _videoHeightDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
 
+    def getSelectedVideoExt(self):
+        return self.job.videoExts[self.selectedVideoExtIndex]
+
+    def getSelectedVideoHeight(self):
+        return self.job.videoHeights[self.selectedVideoHeightIndex]
+
     def __init__(self, **kwargs):
         super().__init__(
             orientation="vertical",
@@ -56,7 +63,7 @@ class JobVideoFormatDialogue(MDDialog):
         )
 
         self.videoExtDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.job.videoExts[self.selectedVideoExtIndex]
+            text=self.getSelectedVideoExt()
         )
 
         self.videoExtDropDownMenuButton = MDListItem(
@@ -80,7 +87,7 @@ class JobVideoFormatDialogue(MDDialog):
         )
 
         self.videoHeightDropDownMenuButtonText = MDListItemSupportingText(
-            text=f"{self.job.videoHeights[self.selectedVideoHeightIndex]}p"
+            text=f"{self.getSelectedVideoHeight()}p"
         )
 
         self.videoHeightDropDownMenuButton = MDListItem(
@@ -197,6 +204,7 @@ class JobVideoFormatDialogue(MDDialog):
         for index, videoExt in enumerate(self.job.videoExts):
             self._videoExtDropDownMenuItems.append({
                 "text": videoExt,
+                "height": dp(36),
                 "on_release": lambda i=index: _selectVideoExtIndex(i)
             })
 
@@ -213,16 +221,19 @@ class JobVideoFormatDialogue(MDDialog):
         for index, videoHeight in enumerate(self.job.videoHeights):
             self._videoHeightDropDownMenuItems.append({
                 "text": f"{videoHeight}p",
+                "height": dp(36),
                 "on_release": lambda i=index: _selectVideoHeightIndex(i)
             })
 
     def _onSelectedVideoExtIndex(self, instance, value):
-        videoExt = self.job.videoExts[value]
-        self.videoExtDropDownMenuButtonText.text = videoExt
+        selectedVideoExt = self.job.videoExts[value]
+        self.videoExtDropDownMenuButtonText.text = selectedVideoExt
+        self.job.videoExt = selectedVideoExt
 
     def _onSelectedVideoHeightIndex(self, instance, value):
-        videoHeight = self.job.videoHeights[value]
-        self.videoHeightDropDownMenuButtonText.text = f"{videoHeight}p"
+        selectedVideoHeight = self.job.videoHeights[value]
+        self.videoHeightDropDownMenuButtonText.text = f"{selectedVideoHeight}p"
+        self.job.videoHeight = selectedVideoHeight
 
     def _onVideoExtDropDownMenuButtonRelease(self):
 
@@ -252,7 +263,7 @@ class JobVideoFormatDialogue(MDDialog):
 
         Clock.schedule_once(openMenu)
 
-    def on_confirm(self):
+    def on_confirm(self, data):
         """
         Default handler required by Kivy.
         Override or bind to this event externally.
@@ -264,7 +275,7 @@ class JobVideoFormatDialogue(MDDialog):
         self.dispatch(
             "on_confirm",
             {
-                "ext": self.selectedVideoExt,
-                "height": self.selectedVideoHeight
+                "ext": self.getSelectedVideoExt(),
+                "height": self.getSelectedVideoHeight()
             }
         )

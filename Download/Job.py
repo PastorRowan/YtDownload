@@ -1,9 +1,9 @@
 
+import config
+
 from typing import (
     Literal
 )
-
-import config
 
 from kivy.event import EventDispatcher
 from kivy.properties import (
@@ -15,14 +15,11 @@ from kivy.properties import (
 from kivy.clock import Clock
 
 import yt_dlp
-
 import time
-
 from . import (
     helpers,
     Types
 )
-
 import os
 
 class Paused(Exception):
@@ -58,15 +55,15 @@ class Job(EventDispatcher):
     downloadType: DownloadType = StringProperty(DEFAULT_DOWNLOAD_TYPE, options=ALLOWED_DOWNLOAD_TYPES)
 
     VideoExt = Literal[
-        "mp4",
-        "webm"
+        "webm",
+        "mp4"
     ]
 
     VideoExts = tuple[VideoExt, ...]
 
     ALLOWED_VIDEO_EXTS: VideoExts = (
-        "mp4",
-        "webm"
+        "webm",
+        "mp4"
     )
 
     DEFAULT_VIDEO_EXT_INDEX = 0
@@ -104,20 +101,18 @@ class Job(EventDispatcher):
     videoHeight: VideoHeight = StringProperty(DEFAULT_VIDEO_HEIGHT, options=ALLOWED_VIDEO_HEIGHTS)
 
     AudioExt = Literal[
-        "m4a",
-        "webm",
-        "opus"
+        "opus",
+        "m4a"
     ]
 
     AudioExts = tuple[AudioExt, ...]
 
     ALLOWED_AUDIO_EXTS: AudioExts = (
-        "m4a",
-        "webm",
-        "opus"
+        "opus",
+        "m4a"
     )
-    
-    DEFAULT_AUDIO_EXT_INDEX: int = 2
+
+    DEFAULT_AUDIO_EXT_INDEX: int = 0
 
     DEFAULT_AUDIO_EXT: AudioExt = ALLOWED_AUDIO_EXTS[DEFAULT_AUDIO_EXT_INDEX]
 
@@ -273,8 +268,6 @@ class Job(EventDispatcher):
 
             print("str(config.paths.executable(ffmpeg)): ", str(config.paths.executable("ffmpeg")))
 
-            is_android = config.platform() == "android"
-
             base_options = {
                 "logger": helpers.YTDLPLogger(),
                 "outtmpl": os.path.join(
@@ -308,10 +301,13 @@ class Job(EventDispatcher):
                 # leave default for ffmpeg merge for video and audio format
                 # "postprocessors": [],
                 "postprocessor_args": {
-                    "ffmpeg": ["-threads", "4"]
+                    "ffmpeg": [
+                        "-threads",
+                        str(os.cpu_count() or 1)
+                    ]
                 }
             }
-                
+
             if self.downloadType == "video":
                 ydl_download_options["format"] = (
                     f"bv*[height<={self.videoHeight}]+"
@@ -320,8 +316,13 @@ class Job(EventDispatcher):
                 )
                 ydl_download_options["merge_output_format"] = self.videoExt
             elif self.downloadType == "audio":
+                print("Audio file chosen")
+                print("self.audioExt: ", self.audioExt)
                 ydl_download_options["format"] = f"ba*[abr<={self.abr}]/ba"
-                ydl_download_options["merge_output_format"] = self.audioExt
+                ydl_download_options["postprocessors"] = [{
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": self.audioExt
+                }]
 
             with yt_dlp.YoutubeDL(ydl_download_options) as ydl_download: 
 

@@ -55,6 +55,21 @@ class JobOptionsDialogue(MDDialog):
 
     job: Job = ObjectProperty(Job())
 
+    container: MDDialogContentContainer
+    fileNameFieldVBox: MDBoxLayout
+    downloadTypeVBox: MDBoxLayout
+    videoDownloadTypeChip: MDSegmentedButtonItem
+    audioDownloadTypeChip: MDSegmentedButtonItem
+    formatVBox: MDBoxLayout
+    formatChipButtonContainer: MDBoxLayout
+    videoFormatChipButtonContainer: MDBoxLayout
+    videoFormatChipButton: MDChip
+    audioFormatChipButton: MDChip
+    bottomBarContainer: MDDialogButtonContainer
+
+    _videoFormatChipButtonDefaultSizeHintx: float
+    _videoFormatChipButtonDefaultSizeHinty: float
+
     def __init__(self, **kwargs):
         super().__init__(
             orientation="vertical",
