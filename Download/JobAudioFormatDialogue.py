@@ -1,9 +1,4 @@
 
-from typing import (
-    TypedDict,
-    Callable
-)
-
 from kivymd.uix.dialog import (
     MDDialog,
     MDDialogHeadlineText,
@@ -17,13 +12,6 @@ from kivymd.uix.button import (
     MDButton,
     MDButtonText
 )
-from kivymd.uix.list import (
-    MDListItem,
-    MDListItemSupportingText,
-    MDListItemLeadingIcon,
-    MDListItemTrailingIcon
-)
-from kivymd.uix.menu import MDDropdownMenu
 
 from kivy.clock import Clock
 from kivy.properties import (
@@ -36,25 +24,17 @@ from kivy.metrics import dp
 
 from .Job import Job
 
-class DropDownMenuItem(TypedDict):
-    text: str
-    on_release: Callable[[], None]
+from widgets import DropDownSelector
 
 class JobAudioFormatDialogue(MDDialog):
 
     job: Job = ObjectProperty(Job())
 
-    selectedAudioExtIndex: int = NumericProperty(Job.DEFAULT_AUDIO_EXT_INDEX)
-    _audioExtDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
+    selectedAudioExt: str = StringProperty(Job.DEFAULT_AUDIO_EXT)
+    audioExtSelector: DropDownSelector
 
-    selectedAudioAbrIndex: int = NumericProperty(Job.DEFAULT_ABR_INDEX)
-    _audioAbrDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
-
-    def getSelectedAudioExt(self):
-        return self.job.audioExts[self.selectedAudioExtIndex]
-
-    def getSelectedAudioAbr(self):
-        return self.job.abrs[self.selectedAudioAbrIndex]
+    selectedAbr: str = StringProperty(Job.DEFAULT_ABR)
+    abrSelector: DropDownSelector
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -62,52 +42,15 @@ class JobAudioFormatDialogue(MDDialog):
             **kwargs
         )
 
-        self.audioExtDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.getSelectedAudioExt()
+        self.audioExtSelector = DropDownSelector(
+            icon="file-audio-outline",
+            values=self.job.audioExts,
         )
 
-        self.audioExtDropDownMenuButton = MDListItem(
-            MDListItemLeadingIcon(
-                icon="file-audio-outline"
-            ),
-            self.audioExtDropDownMenuButtonText,
-            MDListItemTrailingIcon(
-                icon="file-audio-outline"
-            ),
-            size_hint=(1, None),
-            on_release=lambda dt: self._onAudioExtDropDownMenuButtonRelease()
-        )
-
-        self.audioExtDropDownMenu = MDDropdownMenu(
-            caller=self.audioExtDropDownMenuButton, # the widget that opens it
-            items=self._audioExtDropDownMenuItems,
-            position="bottom",
-            hor_growth="right",
-            ver_growth="down"
-        )
-
-        self.audioAbrDropDownMenuButtonText = MDListItemSupportingText(
-            text=f"{self.getSelectedAudioAbr()}kbps"
-        )
-
-        self.audioAbrDropDownMenuButton = MDListItem(
-            MDListItemLeadingIcon(
-                icon="high-definition-box"
-            ),
-            self.audioAbrDropDownMenuButtonText,
-            MDListItemTrailingIcon(
-                icon="high-definition-box"
-            ),
-            size_hint=(1, None),
-            on_release=lambda dt: self._onAudioAbrDropDownMenuButtonRelease(dt)
-        )
-
-        self.audioAbrDropDownMenu = MDDropdownMenu(
-            caller=self.audioAbrDropDownMenuButton, # the widget that opens it
-            items=self._audioAbrDropDownMenuItems,
-            position="bottom",
-            hor_growth="right",
-            ver_growth="down"
+        self.abrSelector = DropDownSelector(
+            icon="high-definition-box",
+            values=self.job.abrs,
+            formatter=lambda abr: f"{abr}kbps",
         )
 
         self.add_widget(
@@ -126,10 +69,10 @@ class JobAudioFormatDialogue(MDDialog):
             MDDialogContentContainer(
             
                 MDLabel(text="Audio extension"),
-                self.audioExtDropDownMenuButton,
+                self.audioExtSelector,
 
                 MDLabel(text="Audio bit rate"),
-                self.audioAbrDropDownMenuButton,
+                self.abrSelector,
 
                 MDDialogButtonContainer(
                     Widget(
@@ -166,6 +109,14 @@ class JobAudioFormatDialogue(MDDialog):
             job=lambda instance, value: self._onJob(instance, value)
         )
 
+        self.audioExtSelector.bind(
+            on_selection_changed=lambda instance, value: self._onSelectedAudioExt(instance, value)
+        )
+
+        self.abrSelector.bind(
+            on_selection_changed=lambda instance, value: self._onSelectedAbr(instance, value)
+        )
+
         self._onJob(self, self.job)
 
         self.register_event_type("on_confirm")
@@ -176,91 +127,28 @@ class JobAudioFormatDialogue(MDDialog):
 
         job.bind(
             audioExts=lambda instance, value: self._onJobAudioExts(instance, value),
-            abrs=lambda instance, value: self._onJobAudioAbrs(instance, value)
-        )
-
-        self.bind(
-            selectedAudioExtIndex=lambda instance, value: self._onSelectedAudioExtIndex(instance, value),
-            selectedAudioAbrIndex=lambda instance, value: self._onSelectedAudioAbrIndex(instance, value)
+            abrs=lambda instance, value: self._onJobAbrs(instance, value)
         )
 
         self._onJobAudioExts(self, job.audioExts)
-        self._onJobAudioAbrs(self, job.abrs)
+        self._onJobAbrs(self, job.abrs)
 
-        self._onSelectedAudioExtIndex(self, self.selectedAudioExtIndex)
-        self._onSelectedAudioAbrIndex(self, self.selectedAudioAbrIndex)
+        self._onSelectedAudioExt(self, self.selectedAudioExt)
+        self._onSelectedAbr(self, self.selectedAbr)
 
     def _onJobAudioExts(self, instance, value):
+        print("_onJobAudioExts")
 
-        audioExtsDropDownMenu = self.audioExtDropDownMenu
+    def _onJobAbrs(self, instance, value):
+        print("_onJobAbrs")
 
-        self._audioExtDropDownMenuItems.clear()
+    def _onSelectedAudioExt(self, instance, value) -> None:
+        print("_onSelectedAudioExt value: ", value)
+        self.job.audioExt = value
 
-        def _selectAudioExtIndex(index: int) -> None:
-            self.selectedAudioExtIndex = index
-            audioExtsDropDownMenu.dismiss()
-
-        for index, audioExt in enumerate(self.job.audioExts):
-            self._audioExtDropDownMenuItems.append({
-                "text": audioExt,
-                "height": dp(36),
-                "on_release": lambda i=index: _selectAudioExtIndex(i)
-            })
-
-    def _onJobAudioAbrs(self, instance, value):
-
-        audioAbrDropDownMenu = self.audioAbrDropDownMenu
-
-        self._audioAbrDropDownMenuItems.clear()
-
-        def _selectAudioAbrIndex(index: int) -> None:
-            self.selectedAudioAbrIndex = index
-            audioAbrDropDownMenu.dismiss()
-
-        for index, audioAbr in enumerate(self.job.abrs):
-            self._audioAbrDropDownMenuItems.append({
-                "text": f"{audioAbr}kbps",
-                "height": dp(36),
-                "on_release": lambda i=index: _selectAudioAbrIndex(i)
-            })
-
-    def _onSelectedAudioExtIndex(self, instance, value):
-        selectedAudioExt = self.getSelectedAudioExt()
-        self.audioExtDropDownMenuButtonText.text = selectedAudioExt
-        self.job.audioExt = selectedAudioExt
-
-    def _onSelectedAudioAbrIndex(self, instance, value) -> None:
-        selectedAbr = self.getSelectedAudioAbr()
-        self.audioAbrDropDownMenuButtonText.text = f"{selectedAbr}kbps"
-        self.job.abr = selectedAbr
-
-    def _onAudioExtDropDownMenuButtonRelease(self):
-
-        menu = self.audioExtDropDownMenu
-        caller = self.audioExtDropDownMenuButton
-
-        def openMenu(*_):
-            menu.open()
-            menu.width = caller.width
-            wx, wy = caller.to_window(*caller.pos)
-            menu.x = wx
-            menu.y = wy - menu.height
-
-        Clock.schedule_once(openMenu)
-
-    def _onAudioAbrDropDownMenuButtonRelease(self, dt):
-
-        menu = self.audioAbrDropDownMenu
-        caller = self.audioAbrDropDownMenuButton
-
-        def openMenu(*_):
-            menu.open()
-            menu.width = caller.width
-            wx, wy = caller.to_window(*caller.pos)
-            menu.x = wx
-            menu.y = wy - menu.height
-
-        Clock.schedule_once(openMenu)
+    def _onSelectedAbr(self, instance, value) -> None:
+        print("_onSelectedAbr value: ", value)
+        self.job.abr = value
 
     def on_confirm(self, data):
         """
@@ -274,7 +162,7 @@ class JobAudioFormatDialogue(MDDialog):
         self.dispatch(
             "on_confirm",
             {
-                "ext": self.getSelectedAudioExt(),
-                "abr": self.getSelectedAudioAbr()
+                "ext": self.selectedAudioExt,
+                "abr": self.audioExtSelector
             }
         )
