@@ -3,6 +3,8 @@ pushd "%CD%"
 
 cd /d %~dp0\..
 
+rmdir /s /q venv
+
 python -m venv venv
 
 cd /d %~dp0

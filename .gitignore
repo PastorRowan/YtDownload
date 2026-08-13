@@ -4,6 +4,10 @@
 *.py[cod]
 *$py.class
 
+/yt-dlp
+
+/yt-dlp/
+
 /cache/
 
 /downloads/

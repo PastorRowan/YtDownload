@@ -52,10 +52,14 @@ class JobView(MDCard):
             size_hint=(1, None),
             size_hint_x=1,
             size_hint_y=None,
-            adaptive_height=True,
+            adaptive_height=False,
             adaptive_width=False,
             **kwargs
         )
+
+        print(self.size)
+        print(self.width)
+        print(self.height)
 
         self.thumbnailContainer = MDFloatLayout(
             size_hint=(1, None),
@@ -249,10 +253,16 @@ class JobView(MDCard):
             Queue.resumeJob(self.job)
 
     def _onWidth(self, *args) -> None:
-        height = self.width * 9 / 16
 
-        self.thumbnailContainer.height = height
-        self.thumbnailImage.height = height
+        thumbnail_height = self.width * 9 / 16
+
+        self.thumbnailContainer.height = thumbnail_height
+        self.thumbnailImage.height = thumbnail_height
+
+        self.height = (
+            self.thumbnailContainer.height +
+            self.bottomBar.height
+        )
 
     """
     def _updateImageHeight(self, *args) -> None:

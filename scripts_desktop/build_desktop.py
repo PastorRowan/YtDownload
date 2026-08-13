@@ -71,7 +71,9 @@ def main():
             sys.executable,
             "-m",
             "PyInstaller",
-            "--noconsole",
+
+            #"--noconsole",
+
             # 2 output modes: --onedir or --onefile
             # enable --onefile to make the exe all in one file
             # remember that on every startup the app copies all needed
@@ -79,13 +81,19 @@ def main():
             # prefer --onedir because startup overhead is greatly reduced
             #"--onefile",
             "--onedir",
+
+            "--collect-all", "kivymd",
+
             "--specpath", str(SPECPATH_DIR),
             "--workpath", str(WORKPATH_DIR),
             "--distpath", str(DIST_DIR),
+
             "--add-binary", addBinary(config.paths.executable("ffmpeg"), DEST_BIN),
             "--add-binary", addBinary(config.paths.executable("ffprobe"), DEST_BIN),
             "--add-binary", addBinary(config.paths.executable("qjs"), DEST_BIN),
+
             "main.py"
+
         ],
         check=True,
         cwd=str(parent_folder_path)

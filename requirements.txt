@@ -1,6 +1,30 @@
+altgraph==0.17.5
+asyncgui==0.6.3
+asynckivy==0.6.4
+certifi==2026.7.22
+charset-normalizer==3.4.9
+docutils==0.23
+filetype==1.2.0
+idna==3.18
 Kivy==2.3.1
-kivymd @ https://github.com/kivymd/KivyMD/archive/master.zip
-requests
-Pillow
+Kivy-Garden==0.1.5
+kivy_deps.angle==0.4.0
+kivy_deps.glew==0.3.1
+kivy_deps.sdl2==0.8.0
+kivymd @ https://github.com/kivymd/KivyMD/archive/master.zip#sha256=fb0dc6b8af91fe0719f687a152732fcb250ff1dce190c8b749391af14cb35c5c
+materialshapes==0.3
+materialyoucolor==3.0.3
+packaging==26.2
+pefile==2024.8.26
+pillow==12.3.0
+pycairo==1.29.0
+Pygments==2.20.0
 pyinstaller==6.21.0
-yt-dlp==2026.3.17
+pyinstaller-hooks-contrib==2026.6
+pypiwin32==223
+pywin32==312
+pywin32-ctypes==0.2.3
+requests==2.34.2
+setuptools==83.0.0
+urllib3==2.7.0
+yt-dlp==2026.7.4
