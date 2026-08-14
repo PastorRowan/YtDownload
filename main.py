@@ -8,11 +8,7 @@ import zipfile
 
 yt_dlp_path = str(config.paths.base() / "yt-dlp")
 
-print("is zip:", zipfile.is_zipfile(yt_dlp_path))
-
 update_yt_dlp(yt_dlp_path)
-
-print("is zip:", zipfile.is_zipfile(yt_dlp_path))
 
 sys.path.insert(0, str(yt_dlp_path))
 

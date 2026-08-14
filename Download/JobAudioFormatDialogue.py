@@ -44,14 +44,16 @@ class JobAudioFormatDialogue(MDDialog):
 
         self.audioExtSelector = DropDownSelector(
             icon="file-audio-outline",
-            values=self.job.audioExts,
+            values=self.job.audioExts
         )
+        self.audioExtSelector.select(Job.DEFAULT_AUDIO_EXT_INDEX)
 
         self.abrSelector = DropDownSelector(
             icon="high-definition-box",
             values=self.job.abrs,
-            formatter=lambda abr: f"{abr}kbps",
+            formatter=lambda abr: f"{abr}kbps"
         )
+        self.abrSelector.select(Job.DEFAULT_ABR_INDEX)
 
         self.add_widget(
             MDDialogIcon(
@@ -163,6 +165,6 @@ class JobAudioFormatDialogue(MDDialog):
             "on_confirm",
             {
                 "ext": self.selectedAudioExt,
-                "abr": self.audioExtSelector
+                "abr": self.selectedAbr
             }
         )

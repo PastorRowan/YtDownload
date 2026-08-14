@@ -1,7 +1,7 @@
 
 Requires These binaries:
 
-download here: https://www.gyan.dev/ffmpeg/builds/
+download here: https://github.com/yt-dlp/FFmpeg-Builds
 ffmpeg.exe
 ffprobe.exe
 

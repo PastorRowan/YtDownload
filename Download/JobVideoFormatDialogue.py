@@ -36,25 +36,17 @@ from kivy.metrics import dp
 
 from .Job import Job
 
-class DropDownMenuItem(TypedDict):
-    text: str
-    on_release: Callable[[], None]
+from widgets import DropDownSelector
 
 class JobVideoFormatDialogue(MDDialog):
 
     job: Job = ObjectProperty(Job())
 
-    selectedVideoExtIndex: int = NumericProperty(Job.DEFAULT_VIDEO_EXT_INDEX)
-    _videoExtDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
+    selectedVideoExt: str = StringProperty(Job.DEFAULT_VIDEO_EXT)
+    videoExtSelector: DropDownSelector
 
-    selectedVideoHeightIndex: int = NumericProperty(Job.DEFAULT_VIDEO_HEIGHT_INDEX)
-    _videoHeightDropDownMenuItems: list[DropDownMenuItem] = ListProperty([])
-
-    def getSelectedVideoExt(self):
-        return self.job.videoExts[self.selectedVideoExtIndex]
-
-    def getSelectedVideoHeight(self):
-        return self.job.videoHeights[self.selectedVideoHeightIndex]
+    selectedVideoHeight: str = StringProperty(Job.DEFAULT_VIDEO_HEIGHT)
+    videoHeightSelector: DropDownSelector
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -62,53 +54,18 @@ class JobVideoFormatDialogue(MDDialog):
             **kwargs
         )
 
-        self.videoExtDropDownMenuButtonText = MDListItemSupportingText(
-            text=self.getSelectedVideoExt()
+        self.videoExtSelector = DropDownSelector(
+            icon="file-video-outline",
+            values=self.job.videoExts
         )
+        self.videoExtSelector.select(Job.DEFAULT_VIDEO_EXT_INDEX)
 
-        self.videoExtDropDownMenuButton = MDListItem(
-            MDListItemLeadingIcon(
-                icon="file-video-outline"
-            ),
-            self.videoExtDropDownMenuButtonText,
-            MDListItemTrailingIcon(
-                icon="file-video-outline"
-            ),
-            size_hint=(1, None),
-            on_release=lambda dt: self._onVideoExtDropDownMenuButtonRelease()
+        self.videoHeightSelector = DropDownSelector(
+            icon="high-definition-box",
+            values=self.job.videoHeights,
+            formatter=lambda videoHeight: f"{videoHeight}p"
         )
-
-        self.videoExtDropDownMenu = MDDropdownMenu(
-            caller=self.videoExtDropDownMenuButton, # the widget that opens it
-            items=self._videoExtDropDownMenuItems,
-            position="bottom",
-            hor_growth="right",
-            ver_growth="down"
-        )
-
-        self.videoHeightDropDownMenuButtonText = MDListItemSupportingText(
-            text=f"{self.getSelectedVideoHeight()}p"
-        )
-
-        self.videoHeightDropDownMenuButton = MDListItem(
-            MDListItemLeadingIcon(
-                icon="high-definition-box"
-            ),
-            self.videoHeightDropDownMenuButtonText,
-            MDListItemTrailingIcon(
-                icon="high-definition-box"
-            ),
-            size_hint=(1, None),
-            on_release=lambda dt: self._onVideoHeightDropDownMenuButtonRelease()
-        )
-
-        self.videoHeightDropDownMenu = MDDropdownMenu(
-            caller=self.videoHeightDropDownMenuButton, # the widget that opens it
-            items=self._videoHeightDropDownMenuItems,
-            position="bottom",
-            hor_growth="right",
-            ver_growth="down"
-        )
+        self.videoHeightSelector.select(Job.DEFAULT_VIDEO_HEIGHT_INDEX)
 
         self.add_widget(
             MDDialogIcon(
@@ -126,10 +83,10 @@ class JobVideoFormatDialogue(MDDialog):
             MDDialogContentContainer(
             
                 MDLabel(text="Video extension"),
-                self.videoExtDropDownMenuButton,
+                self.videoExtSelector,
 
                 MDLabel(text="Video height"),
-                self.videoHeightDropDownMenuButton,
+                self.videoHeightSelector,
 
                 MDDialogButtonContainer(
                     Widget(
@@ -166,6 +123,14 @@ class JobVideoFormatDialogue(MDDialog):
             job=lambda instance, value: self._onJob(instance, value)
         )
 
+        self.videoExtSelector.bind(
+            on_selection_changed=lambda instance, value: self._onSelectedVideoExt(instance, value)
+        )
+
+        self.videoHeightSelector.bind(
+            on_selection_changed=lambda instance, value: self._onSelectedVideoHeight(instance, value)
+        )
+
         self._onJob(self, self.job)
 
         self.register_event_type("on_confirm")
@@ -179,103 +144,39 @@ class JobVideoFormatDialogue(MDDialog):
             videoHeights=lambda instance, value: self._onJobVideoHeights(instance, value)
         )
 
-        self.bind(
-            selectedVideoExtIndex=lambda instance, value: self._onSelectedVideoExtIndex(instance, value),
-            selectedVideoHeightIndex=lambda instance, value: self._onSelectedVideoHeightIndex(instance, value)
-        )
-
         self._onJobVideoExts(self, job.videoExts)
         self._onJobVideoHeights(self, job.videoHeights)
 
-        self._onSelectedVideoExtIndex(self, self.selectedVideoExtIndex)
-        self._onSelectedVideoHeightIndex(self, self.selectedVideoHeightIndex)
+        self._onSelectedVideoExt(self, self.selectedVideoExt)
+        self._onSelectedVideoHeight(self, self.selectedVideoHeight)
 
+    def _onJobVideoExts(self, instance, value) -> None:
+        print("_onJobVideoExts")
 
-    def _onJobVideoExts(self, instance, value):
+    def _onJobVideoHeights(self, instance, value) -> None:
+        print("_onJobVideoHeights")
 
-        videoExtsDropDownMenu = self.videoExtDropDownMenu
+    def _onSelectedVideoExt(self, instance, value) -> None:
+        print("_onSelectedVideoExt value: ", value)
+        self.job.videoExt = value
 
-        self._videoExtDropDownMenuItems.clear()
+    def _onSelectedVideoHeight(self, instance, value) -> None:
+        print("_onSelectedVideoHeight value: ", value)
+        self.job.videoHeight = value
 
-        def _selectVideoExtIndex(index: int) -> None:
-            self.selectedVideoExtIndex = index
-            videoExtsDropDownMenu.dismiss()
-
-        for index, videoExt in enumerate(self.job.videoExts):
-            self._videoExtDropDownMenuItems.append({
-                "text": videoExt,
-                "height": dp(36),
-                "on_release": lambda i=index: _selectVideoExtIndex(i)
-            })
-
-    def _onJobVideoHeights(self, instance, value):
-
-        videoHeightsDropDownMenu = self.videoHeightDropDownMenu
-
-        self._videoHeightDropDownMenuItems.clear()
-
-        def _selectVideoHeightIndex(index: int) -> None:
-            self.selectedVideoHeightIndex = index
-            videoHeightsDropDownMenu.dismiss()
-
-        for index, videoHeight in enumerate(self.job.videoHeights):
-            self._videoHeightDropDownMenuItems.append({
-                "text": f"{videoHeight}p",
-                "height": dp(36),
-                "on_release": lambda i=index: _selectVideoHeightIndex(i)
-            })
-
-    def _onSelectedVideoExtIndex(self, instance, value):
-        selectedVideoExt = self.job.videoExts[value]
-        self.videoExtDropDownMenuButtonText.text = selectedVideoExt
-        self.job.videoExt = selectedVideoExt
-
-    def _onSelectedVideoHeightIndex(self, instance, value):
-        selectedVideoHeight = self.job.videoHeights[value]
-        self.videoHeightDropDownMenuButtonText.text = f"{selectedVideoHeight}p"
-        self.job.videoHeight = selectedVideoHeight
-
-    def _onVideoExtDropDownMenuButtonRelease(self):
-
-        menu = self.videoExtDropDownMenu
-        caller = self.videoExtDropDownMenuButton
-
-        def openMenu(*_):
-            menu.open()
-            menu.width = caller.width
-            wx, wy = caller.to_window(*caller.pos)
-            menu.x = wx
-            menu.y = wy - menu.height
-
-        Clock.schedule_once(openMenu)
-
-    def _onVideoHeightDropDownMenuButtonRelease(self):
-
-        menu = self.videoHeightDropDownMenu
-        caller = self.videoHeightDropDownMenuButton
-
-        def openMenu(*_):
-            menu.open()
-            menu.width = caller.width
-            wx, wy = caller.to_window(*caller.pos)
-            menu.x = wx
-            menu.y = wy - menu.height
-
-        Clock.schedule_once(openMenu)
-
-    def on_confirm(self, data):
+    def on_confirm(self, data) -> None:
         """
         Default handler required by Kivy.
         Override or bind to this event externally.
         """
         pass
 
-    def _on_confirm(self):
+    def _on_confirm(self) -> None:
 
         self.dispatch(
             "on_confirm",
             {
-                "ext": self.getSelectedVideoExt(),
-                "height": self.getSelectedVideoHeight()
+                "ext": self.selectedVideoExt,
+                "height": self.selectedVideoHeight
             }
         )

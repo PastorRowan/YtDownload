@@ -194,6 +194,14 @@ class Job(EventDispatcher):
 
     eta: float = NumericProperty(DEFAULT_ETA)
 
+    DEFAULT_TOTAL_BYTES: float = 0
+
+    totalBytes: float = NumericProperty(DEFAULT_TOTAL_BYTES)
+
+    DEFAULT_DOWNLOADED_BYTES: float = 0
+
+    downloadedBytes: float = NumericProperty(DEFAULT_DOWNLOADED_BYTES)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -233,7 +241,8 @@ class Job(EventDispatcher):
                 if (
                     (self.thumbnail == self.DEFAULT_THUMBNAIL or
                     self.title == self.DEFAULT_TITLE or
-                    self.channel == self.DEFAULT_CHANNEL) and
+                    self.channel == self.DEFAULT_CHANNEL or
+                    self.totalBytes == self.DEFAULT_TOTAL_BYTES) and
                     infoDict is not None
                 ):
 
@@ -244,13 +253,15 @@ class Job(EventDispatcher):
                         self.thumbnail = thumbnail
                         self.title = title
                         self.channel = channel
+                        self.totalBytes = total
                     Clock.schedule_once(updateMetaData)
 
-                if total:
+                if downloaded and total:
                     progress = downloaded / total
-                    def updateJobProgress(dt):
+                    def updateJobProgressAndDownloadedBytes(dt):
+                        self.downloadedBytes = downloaded
                         self.progress = progress
-                    Clock.schedule_once(updateJobProgress)
+                    Clock.schedule_once(updateJobProgressAndDownloadedBytes)
 
                 def updateJobSpeedAndEta(dt):
                     self.speed = speed
