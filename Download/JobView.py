@@ -43,6 +43,8 @@ class JobView(MDCard):
             **kwargs
         )
 
+        progressIndicatorHeight: float = dp(3)
+
         self.downloadLayout = MDBoxLayout(
             orientation="vertical",
             size_hint=(1, 1)
@@ -85,13 +87,19 @@ class JobView(MDCard):
             font_size=sp(12)
         )
 
+        self.infoLayout.add_widget(
+            Widget(
+                height=progressIndicatorHeight,
+                size_hint=(1, None)
+            )
+        )
         self.infoLayout.add_widget(self.titleLabel)
         self.infoLayout.add_widget(self.statusLabel)
 
         self.progressIndicator = MDLinearProgressIndicator(
             orientation="horizontal",
             size_hint=(1, None),
-            height=dp(3),
+            height=progressIndicatorHeight,
             type="determinate",
             value=0
         )

@@ -196,11 +196,11 @@ class Job(EventDispatcher):
 
     DEFAULT_TOTAL_BYTES: float = 0
 
-    totalBytes: float = NumericProperty(DEFAULT_TOTAL_BYTES)
+    totalBytes: int = NumericProperty(DEFAULT_TOTAL_BYTES)
 
     DEFAULT_DOWNLOADED_BYTES: float = 0
 
-    downloadedBytes: float = NumericProperty(DEFAULT_DOWNLOADED_BYTES)
+    downloadedBytes: int = NumericProperty(DEFAULT_DOWNLOADED_BYTES)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
