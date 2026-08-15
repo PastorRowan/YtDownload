@@ -11,12 +11,12 @@ from kivy.metrics import dp
 
 import Colors
 
-from .Queue import _Queue
+from .Queue import Queue
 from .JobsView import JobsView
 
 class QueueView(MDBoxLayout):
 
-    queue: _Queue = ObjectProperty()
+    queue: Queue = ObjectProperty()
 
     queuedJobsViewLabel: MDLabel
     queuedJobsView: JobsView

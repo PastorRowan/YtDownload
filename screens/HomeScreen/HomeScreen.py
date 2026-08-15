@@ -18,7 +18,8 @@ from kivymd.uix.appbar import (
 from kivy.core.window import Window
 from kivy.metrics import dp
 from kivy.properties import (
-    StringProperty
+    StringProperty,
+    ObjectProperty
 )
 
 from screens.HomeScreen.ErrorCard import ErrorCard
@@ -27,14 +28,38 @@ import Colors
 
 import Download
 
+import db
+
 Window.clearcolor = Colors.white
 
 class HomeScreen(MDScreen):
 
     url: str = StringProperty("")
+    downloadQueue: Download.Queue = ObjectProperty(Download.Queue())
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        jobModels = db.DownloadJob.getAllDownloadJobs()
+
+        for jobModel in jobModels:
+            downloadJob = Download.Job(
+                id=jobModel.id,
+                url=jobModel.url,
+                downloadType=jobModel.downloadType,
+                videoExt=jobModel.videoExt,
+                videoHeight=jobModel.videoHeight,
+                audioExt=jobModel.audioExt,
+                abr=jobModel.abr,
+                title=jobModel.title,
+                channel=jobModel.channel,
+                thumbnail=jobModel.thumbnail,
+                status=jobModel.status,
+                progress=jobModel.progress,
+                totalBytes=jobModel.totalBytes,
+                downloadedBytes=jobModel.downloadedBytes
+            )
+            self.downloadQueue.addJob(downloadJob)
 
         self.topAppBar = MDTopAppBar(
             MDTopAppBarLeadingButtonContainer(
@@ -112,7 +137,7 @@ class HomeScreen(MDScreen):
         self.errorCard = ErrorCard()
 
         self.downloadQueueView = Download.QueueView(
-            queue=Download.Queue
+            queue=self.downloadQueue
         )
 
         self.rootVBoxLayout.add_widget(
@@ -167,6 +192,10 @@ class HomeScreen(MDScreen):
             on_release=lambda instance: self._onDownloadPromptButtonRelease(instance)
         )
 
+        self.downloadJobOptionsDialogue.bind(
+            on_download_options_confirmed=lambda instance, value: self._onDownloadJobOptionsDialogueConfirmed(instance, value)
+        )
+
     def _onInputText(self, instance, value):
         url = value
         self.url = url
@@ -192,3 +221,7 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
         job = Download.Job(url=url)
         self.downloadJobOptionsDialogue.job = job
         self.downloadJobOptionsDialogue.open()
+
+    def _onDownloadJobOptionsDialogueConfirmed(self, instance, value: Download.Job):
+        job = value
+        self.queue.addJob(job)

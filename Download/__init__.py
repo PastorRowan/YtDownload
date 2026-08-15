@@ -6,6 +6,6 @@ from .JobAudioFormatDialogue import JobAudioFormatDialogue
 from .JobOptionsDialogue import JobOptionsDialogue
 from .JobVideoFormatDialogue import JobVideoFormatDialogue
 from .JobView import JobView
-from .Queue import Queue, _Queue
+from .Queue import Queue
 from .QueueView import QueueView
 from . import Types

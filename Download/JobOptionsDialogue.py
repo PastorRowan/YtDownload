@@ -1,15 +1,4 @@
 
-from typing import (
-    TypedDict,
-    Optional,
-    List,
-    Union,
-    Dict,
-    Any,
-    Literal,
-    Set
-)
-
 from kivymd.uix.dialog import (
     MDDialog,
     MDDialogHeadlineText,
@@ -47,7 +36,6 @@ from kivy.properties import (
 )
 
 from .Job import Job
-from .Queue import Queue
 from .JobVideoFormatDialogue import JobVideoFormatDialogue
 from .JobAudioFormatDialogue import JobAudioFormatDialogue
 
@@ -242,6 +230,8 @@ class JobOptionsDialogue(MDDialog):
 
         self._onJob(self, self.job)
 
+        self.register_event_type("on_download_options_confirmed")
+
     def _onJob(self, instance, value):
 
         job = value
@@ -308,10 +298,18 @@ class JobOptionsDialogue(MDDialog):
         jobAudioFormatDialogue.dismiss()
 
     def _on_download_options_confirmed(self):
-
-        Queue.addJob(self.job)
-
+        self.dispatch(
+            "on_download_options_confirmed",
+            self.job
+        )
         self.dismiss()
+
+    def on_download_options_confirmed(self, job: Job):
+        """
+        Default handler required by Kivy.
+        Override or bind to this event externally.
+        """
+        pass
 
     def _showVideoFormatChipButton(self):
         self.videoFormatChipButton.size_hint_x = self._videoFormatChipButtonDefaultSizeHintx

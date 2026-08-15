@@ -18,7 +18,7 @@ from urllib.parse import urlparse
 from . import Types
 from .Job import Job
 
-class _Queue(EventDispatcher):
+class Queue(EventDispatcher):
 
     queuedJobs: list[Job] = ListProperty([])
 
@@ -99,7 +99,11 @@ class _Queue(EventDispatcher):
         ):
             return
 
-        self.queuedJobs = self.queuedJobs + [job]
+        if job.status in ("queued", "downloading"):
+            self.queuedJobs = self.queuedJobs + [job]
+
+        if job.status == "paused":
+            self.pausedJobs = self.pausedJobs + [job]
 
         if self._currentThread is None:
             self._startNextDownload()
@@ -174,5 +178,3 @@ class _Queue(EventDispatcher):
         # if nothing is running, start immediately
         if self._currentJob is None:
             self._startNextDownload()
-
-Queue = _Queue()

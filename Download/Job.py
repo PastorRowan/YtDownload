@@ -30,6 +30,10 @@ class Cancelled(Exception):
 
 class Job(EventDispatcher):
 
+    DEFAULT_ID: int = -1
+
+    id: int = NumericProperty(DEFAULT_ID)
+
     DEFAULT_URL: str = ""
 
     url: str = StringProperty(DEFAULT_URL)
@@ -163,7 +167,7 @@ class Job(EventDispatcher):
         "finished"
     ]
 
-    STATUS_TYPES: tuple[Status, ...] = (
+    ALLOWED_STATUSES: tuple[Status, ...] = (
         "queued",
         "downloading",
         "error",
@@ -174,9 +178,9 @@ class Job(EventDispatcher):
 
     DEFAULT_STATUS_INDEX: int = 0
 
-    DEFAULT_STATUS: Status = STATUS_TYPES[DEFAULT_STATUS_INDEX]
+    DEFAULT_STATUS: Status = ALLOWED_STATUSES[DEFAULT_STATUS_INDEX]
 
-    status: Status = StringProperty("queued", options=STATUS_TYPES)
+    status: Status = StringProperty("queued", options=ALLOWED_STATUSES)
 
     DEFAULT_ERROR: Exception | None = None
 
