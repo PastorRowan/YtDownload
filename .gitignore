@@ -26,6 +26,8 @@
 /venv-windows/
 /venv-linux/
 
+*.db
+
 *:Zone.Identifier
 
 *.exe

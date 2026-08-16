@@ -7,6 +7,8 @@ import sqlite3
 
 import Download
 
+import time
+
 @dataclass
 class DOWNLOAD_JOB_TABLE:
     id: int
@@ -23,6 +25,7 @@ class DOWNLOAD_JOB_TABLE:
     progress: float
     totalBytes: int
     downloadedBytes: int
+    createdAt: int
 
 dbPathStr = str(config.paths.base() / "sqlite3_database.db")
 
@@ -55,9 +58,27 @@ cur.execute(f"""
         status TEXT NOT NULL CHECK(status IN ({allowedStatusValues})),
         progress REAL NOT NULL,
         total_bytes INTEGER NOT NULL,
-        downloaded_bytes INTEGER NOT NULL
-    )
+        downloaded_bytes INTEGER NOT NULL,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
 """)
+
+cur.execute("""
+    CREATE INDEX IF NOT EXISTS idx_download_job_url
+    ON DOWNLOAD_JOB(url)
+""")
+
+cur.execute("""
+    CREATE INDEX IF NOT EXISTS idx_created_at
+    ON DOWNLOAD_JOB(created_at)
+""")
+
+def getDownloadJobCount() -> int:
+
+    row = cur.execute(
+        "SELECT COUNT(*) FROM DOWNLOAD_JOB"
+    ).fetchone()
+
+    return row[0]
 
 def getAllDownloadJobs() -> list[DOWNLOAD_JOB_TABLE]:
 
@@ -94,45 +115,69 @@ def getDownloadJobByUrl(url: str) -> DOWNLOAD_JOB_TABLE | None:
 
     return DOWNLOAD_JOB_TABLE(*row)
 
+def updateDownloadJob(downloadJob: Download.Job) -> None:
+
+    cur.execute(f"""
+        UPDATE DOWNLOAD_JOB
+        SET
+            url = ?,
+            download_type = ?,
+            video_ext = ?,
+            video_height = ?,
+            audio_ext = ?,
+            abr = ?,
+            title = ?,
+            channel = ?,
+            thumbnail = ?,
+            status = ?,
+            progress = ?,
+            total_bytes = ?,
+            downloaded_bytes = ?
+        WHERE id = ?
+    """, (
+        downloadJob.url,
+        downloadJob.downloadType,
+        downloadJob.videoExt,
+        downloadJob.videoHeight,
+        downloadJob.audioExt,
+        downloadJob.abr,
+        downloadJob.title,
+        downloadJob.channel,
+        downloadJob.thumbnail,
+        downloadJob.status,
+        downloadJob.progress,
+        downloadJob.totalBytes,
+        downloadJob.downloadedBytes,
+        downloadJob.id
+    ))
+
 def saveDownloadJob(downloadJob: Download.Job) -> None:
 
-    job_id = downloadJob.id
+    jobId = downloadJob.id
 
-    if getDownloadJobById(job_id):
+    if getDownloadJobById(jobId):
 
-        cur.execute(f"""
-            UPDATE DOWNLOAD_JOB
-            SET
-                url = ?,
-                download_type = ?,
-                video_ext = ?,
-                video_height = ?,
-                audio_ext = ?,
-                abr = ?,
-                title = ?,
-                channel = ?,
-                thumbnail = ?,
-                status = ?,
-                progress = ?,
-                total_bytes = ?,
-                downloaded_bytes = ?
-            WHERE id = ?
-        """, (
-            downloadJob.url,
-            downloadJob.downloadType,
-            downloadJob.videoExt,
-            downloadJob.videoHeight,
-            downloadJob.audioExt,
-            downloadJob.abr,
-            downloadJob.title,
-            downloadJob.channel,
-            downloadJob.thumbnail,
-            downloadJob.status,
-            downloadJob.progress,
-            downloadJob.totalBytes,
-            downloadJob.downloadedBytes,
-            job_id
-        ))
+        updateDownloadJob(downloadJob)
+
+        return
+
+    elif getDownloadJobCount() >= config.MAX_DOWNLOAD_JOBS:
+
+        oldestRow = cur.execute("""
+            SELECT id
+            FROM DOWNLOAD_JOB
+            ORDER BY created_at ASC
+            LIMIT 1;
+        """).fetchone()
+
+        if oldestRow is None:
+            raise RuntimeError("Could not find the oldest record even though DOWNLOAD_JOB table is full.")
+
+        oldestRowId = oldestRow[0]
+
+        downloadJob.id = oldestRowId
+
+        updateDownloadJob(downloadJob)
 
         return
 
@@ -175,6 +220,6 @@ def saveDownloadJob(downloadJob: Download.Job) -> None:
         raise RuntimeError("Insert failed, no ID returned")
 
     # row is a tuple, id is the first column
-    job_id = row[0]
+    jobId = row[0]
 
-    downloadJob.id = job_id
+    downloadJob.id = jobId

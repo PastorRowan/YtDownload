@@ -16,7 +16,7 @@ from .JobsView import JobsView
 
 class QueueView(MDBoxLayout):
 
-    queue: Queue = ObjectProperty()
+    queue: Queue = ObjectProperty(Queue())
 
     queuedJobsViewLabel: MDLabel
     queuedJobsView: JobsView

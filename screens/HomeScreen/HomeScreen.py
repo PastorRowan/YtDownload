@@ -28,14 +28,30 @@ import Colors
 
 import Download
 
+import Youtube
+
 import db
+
+import helpers
 
 Window.clearcolor = Colors.white
 
 class HomeScreen(MDScreen):
 
     url: str = StringProperty("")
-    downloadQueue: Download.Queue = ObjectProperty(Download.Queue())
+    downloadJobQueue: Download.Queue = ObjectProperty(Download.Queue())
+
+    topAppBar: MDTopAppBar
+    centerScroll: MDScrollView
+    rootVBoxLayout: MDBoxLayout
+    titleBar: MDBoxLayout
+    titleLabel: MDLabel
+    inputLabel: MDLabel
+    inputTextField: MDTextField
+    errorCard: ErrorCard
+    downloadJobQueueView: Download.QueueView
+    downloadPromptButton: MDFabButton
+    downloadJobOptionsDialogue: Download.JobOptionsDialogue
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -59,7 +75,7 @@ class HomeScreen(MDScreen):
                 totalBytes=jobModel.totalBytes,
                 downloadedBytes=jobModel.downloadedBytes
             )
-            self.downloadQueue.addJob(downloadJob)
+            self.downloadJobQueue.addJob(downloadJob)
 
         self.topAppBar = MDTopAppBar(
             MDTopAppBarLeadingButtonContainer(
@@ -112,32 +128,24 @@ class HomeScreen(MDScreen):
             adaptive_size=True
         )
 
-        self.loadingIndicator = MDCircularProgressIndicator(
-            size_hint=(None, None),
-            size=(dp(24), dp(24)),
-            pos_hint={ "left": 0, "y": 0 },
-            active=False
-        )
-
         self.titleBar.add_widget(self.titleLabel)
-        self.titleBar.add_widget(self.loadingIndicator)
 
         self.inputLabel = MDLabel(text="Video link")
-        self.input = MDTextField(
+        self.inputTextField = MDTextField(
             size_hint=(1, None),
             text=self.url,
             hint_text="Video link",
             mode="outlined",
             multiline=True
         )
-        self.input.bind(
-            text=lambda instance, value: self._onInputText(instance, value)
+        self.inputTextField.bind(
+            text=lambda instance, value: self._onInputTextFieldText(instance, value)
         )
 
         self.errorCard = ErrorCard()
 
-        self.downloadQueueView = Download.QueueView(
-            queue=self.downloadQueue
+        self.downloadJobQueueView = Download.QueueView(
+            queue=self.downloadJobQueue
         )
 
         self.rootVBoxLayout.add_widget(
@@ -154,7 +162,7 @@ class HomeScreen(MDScreen):
             )
         )
         self.rootVBoxLayout.add_widget(self.inputLabel)
-        self.rootVBoxLayout.add_widget(self.input)
+        self.rootVBoxLayout.add_widget(self.inputTextField)
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
@@ -162,7 +170,7 @@ class HomeScreen(MDScreen):
             )
         )
         self.rootVBoxLayout.add_widget(self.errorCard)
-        self.rootVBoxLayout.add_widget(self.downloadQueueView)
+        self.rootVBoxLayout.add_widget(self.downloadJobQueueView)
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
@@ -196,23 +204,15 @@ class HomeScreen(MDScreen):
             on_download_options_confirmed=lambda instance, value: self._onDownloadJobOptionsDialogueConfirmed(instance, value)
         )
 
-    def _onInputText(self, instance, value):
+    def _onInputTextFieldText(self, instance, value):
         url = value
         self.url = url
 
     def _onDownloadPromptButtonRelease(self, instance):
 
-        TEST_URL = "https://youtu.be/nGbsO71K4g8?si=HsWSZ3NQnedkz-54"
-
-        """
-https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
-        """
-
         url = self.url
 
-        #url = TEST_URL
-
-        if Download.helpers.isUrlValid(url) is False:
+        if helpers.isUrlValid(url) is False:
             self.errorCard.title = "Url is invalid"
             self.errorCard.body = f"Url '{url}' is invalid"
             self.errorCard.show = True
@@ -223,5 +223,32 @@ https://youtu.be/A7J5eb_VeHE?si=DtRMQuAxVssPOkpi
         self.downloadJobOptionsDialogue.open()
 
     def _onDownloadJobOptionsDialogueConfirmed(self, instance, value: Download.Job):
+
         job = value
-        self.queue.addJob(job)
+
+        videoUrl = job.url
+
+        storedDownloadJobData = db.getDownloadJobByUrl(videoUrl)
+
+        print("storedDownloadJobData: ", storedDownloadJobData)
+
+        if storedDownloadJobData is not None:
+            job.title = storedDownloadJobData.title
+            job.channel = storedDownloadJobData.channel
+            job.thumbnail = storedDownloadJobData.thumbnail
+        else:
+
+            youtubeVideoMetadata = Youtube.getMetadata(videoUrl)
+
+            print("youtubeVideoMetadata: ", youtubeVideoMetadata)
+
+            if youtubeVideoMetadata is not None:
+                job.title = youtubeVideoMetadata.title
+                job.channel = youtubeVideoMetadata.author_name
+                job.thumbnail = youtubeVideoMetadata.thumbnail_url
+
+        job.bind(
+            status=lambda instance, value: db.saveDownloadJob(instance)
+        )
+
+        self.downloadJobQueue.addJob(job)

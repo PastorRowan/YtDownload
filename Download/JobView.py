@@ -13,7 +13,6 @@ from kivy.properties import (
 )
 
 from .Job import Job
-from .Queue import Queue
 
 import Colors
 
@@ -24,9 +23,9 @@ class JobView(MDCard):
     hBoxLayout: MDBoxLayout
     thumbnailImage: AsyncImage
     titleLabel: MDLabel
-    dataLabel: MDLabel
     etaLabel: MDLabel
     progressIndicator: MDLinearProgressIndicator
+    progressIndicatorHeight: float = dp(3)
 
     def __init__(
         self,
@@ -40,14 +39,13 @@ class JobView(MDCard):
             size_hint=(1, None),
             size_hint_x=1,
             size_hint_y=None,
+            padding=0,
+            spacing=0,
+            radius=[0, 0, 0, 0],
+            style="outlined",
+            line_color=(0.7, 0.7, 0.7, 1),
+            line_width=1,
             **kwargs
-        )
-
-        progressIndicatorHeight: float = dp(3)
-
-        self.downloadLayout = MDBoxLayout(
-            orientation="vertical",
-            size_hint=(1, 1)
         )
 
         self.contentLayout = MDBoxLayout(
@@ -63,9 +61,7 @@ class JobView(MDCard):
 
         self.infoLayout = MDBoxLayout(
             orientation="vertical",
-            size_hint=(1, 1),
-            padding=(0, dp(4)),
-            #spacing=dp(2)
+            size_hint=(1, 1)
         )
 
         self.titleLabel = MDLabel(
@@ -89,7 +85,7 @@ class JobView(MDCard):
 
         self.infoLayout.add_widget(
             Widget(
-                height=progressIndicatorHeight,
+                height=self.progressIndicatorHeight,
                 size_hint=(1, None)
             )
         )
@@ -99,24 +95,16 @@ class JobView(MDCard):
         self.progressIndicator = MDLinearProgressIndicator(
             orientation="horizontal",
             size_hint=(1, None),
-            height=progressIndicatorHeight,
+            height=self.progressIndicatorHeight,
             type="determinate",
             value=0
         )
 
         self.contentLayout.add_widget(self.thumbnailImage)
-        self.contentLayout.add_widget(
-            Widget(
-                width=dp(20),
-                size_hint=(None, 1)
-            )
-        )
         self.contentLayout.add_widget(self.infoLayout)
 
-        self.downloadLayout.add_widget(self.contentLayout)
-        self.downloadLayout.add_widget(self.progressIndicator)
-
-        self.add_widget(self.downloadLayout)
+        self.add_widget(self.contentLayout)
+        self.add_widget(self.progressIndicator)
 
         self.contentLayout.bind(
             height=lambda instance, value: self._onContentLayoutHeight(instance, value)

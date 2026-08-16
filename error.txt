@@ -1,12 +1,1 @@
-
-"""
-C:\Users\rowan_306zh\Desktop\adb>adb logcat   | findstr python
-06-22 17:34:14.705 26039 31729 I python  : str(config.paths.bin_platform()):  /data/user/0/ytdownload.ytdownload.ytdownload/files/YtDownload/bin/android
-06-22 17:34:14.713 26039 31729 I python  : str(config.paths.executable(qjs)):  /data/user/0/ytdownload.ytdownload.ytdownload/files/YtDownload/bin/android/qjs
-06-22 17:34:14.896 26039 31729 I python  : [youtube] Extracting URL: https://youtu.be/hXG2h3RWTPE?si=H9XaWylyA2bXQlFQ
-06-22 17:34:14.897 26039 31729 I python  : [youtube] hXG2h3RWTPE: Downloading webpage
-06-22 17:34:16.622 26039 31729 I python  : [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
-06-22 17:34:16.635 26039 31729 I python  : [youtube] hXG2h3RWTPE: Downloading android vr player API JSON
-06-22 17:34:17.395 26039 31729 I python  : [info] hXG2h3RWTPE: Downloading 1 format(s): 398+251
-06-22 17:34:17.445 26039 31729 I python  : ERROR: You have requested merging of multiple formats but ffmpeg is not installed. Aborting due to --abort-on-error
-"""
+ TypeError: Properties ['style'] passed to __init__ may not be existing property names. Valid properties are ['_background_origin', '_background_x', '_background_y', '_md_bg_color', 'adaptive_height', 'adaptive_size', 'adaptive_width', 'angle', 'background', 'background_origin', 'center', 'center_x', 'center_y', 'children', 'cls', 'device_ios', 'disabled', 'height', 'id', 'ids', 'job', 'line_color', 'line_width', 'md_bg_color', 'minimum_height', 'minimum_size', 'minimum_width', 'motion_filter', 'opacity', 'orientation', 'padding', 'parent', 'pos', 'pos_hint', 'radius', 'right', 'size', 'size_hint', 'size_hint_max', 'size_hint_max_x', 'size_hint_max_y', 'size_hint_min', 'size_hint_min_x', 'size_hint_min_y', 'size_hint_x', 'size_hint_y', 'spacing', 'theme_bg_color', 'theme_cls', 'theme_divider_color', 'theme_elevation_level', 'theme_focus_color', 'theme_font_name', 'theme_font_size', 'theme_height', 'theme_icon_color', 'theme_line_color', 'theme_line_height', 'theme_shadow_color', 'theme_shadow_offset', 'theme_shadow_softness', 'theme_text_color', 'theme_width', 'top', 'widgets', 'width', 'x', 'y']

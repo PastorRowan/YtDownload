@@ -1,14 +1,6 @@
 
 
-import yt_dlp
-
-import config
-
 from urllib.parse import urlparse
-
-from . import (
-    Types
-)
 
 class YTDLPLogger:
 
@@ -74,17 +66,3 @@ def getVideoMetaData(
             "info_dict": None
         }
 """
-
-def isUrlValid(url: str) -> bool:
-
-    try:
-
-        parsed = urlparse(url.strip())
-
-        return (
-            parsed.scheme in ("http", "https")
-            and parsed.netloc != ""
-        )
-
-    except Exception:
-        return False  

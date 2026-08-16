@@ -30,6 +30,8 @@ def platform():
             return "linux"
         return "unknown"
 
+MAX_DOWNLOAD_JOBS = 100
+
 class _paths:
 
     EXECUTABLES = ("ffmpeg", "ffprobe", "qjs")
