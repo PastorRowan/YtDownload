@@ -4,8 +4,6 @@ import sys
 
 from update_yt_dlp import update_yt_dlp
 
-import zipfile
-
 yt_dlp_path = str(config.paths.base() / "yt-dlp")
 
 update_yt_dlp(yt_dlp_path)
@@ -14,7 +12,7 @@ sys.path.insert(0, str(yt_dlp_path))
 
 import yt_dlp
 
-print("yt_dlp.version.__version__", yt_dlp.version.__version__)
+print("yt_dlp.version.__version__: ", yt_dlp.version.__version__)
 print(yt_dlp.__spec__)
 print(yt_dlp.__file__)
 
@@ -28,19 +26,19 @@ import Colors
 
 class Application(MDApp):
 
+    screenManager: MDScreenManager
+
     def build(self):
 
         self.theme_cls.text_color = Colors.black
         self.theme_cls.icon_color = Colors.black
 
-        sm = MDScreenManager()
+        self.screenManager = MDScreenManager()
 
-        sm.add_widget(HomeScreen(name="home"))
-        # must add later
-        # sm.add_widget(QueueScreen(name="queue"))
-        # sm.add_widget(SettingsScreen(name="settings"))
+        self.screenManager.add_widget(HomeScreen(name="home"))
+        self.screenManager.add_widget(SettingsScreen(name="settings"))
 
-        return sm
+        return self.screenManager
 
 if __name__ == "__main__":
 

@@ -60,22 +60,23 @@ cur.execute(f"""
         total_bytes INTEGER NOT NULL,
         downloaded_bytes INTEGER NOT NULL,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
+    );
 """)
 
 cur.execute("""
     CREATE INDEX IF NOT EXISTS idx_download_job_url
-    ON DOWNLOAD_JOB(url)
+    ON DOWNLOAD_JOB(url);
 """)
 
 cur.execute("""
     CREATE INDEX IF NOT EXISTS idx_created_at
-    ON DOWNLOAD_JOB(created_at)
+    ON DOWNLOAD_JOB(created_at);
 """)
 
 def getDownloadJobCount() -> int:
 
     row = cur.execute(
-        "SELECT COUNT(*) FROM DOWNLOAD_JOB"
+        "SELECT COUNT(*) FROM DOWNLOAD_JOB;"
     ).fetchone()
 
     return row[0]
@@ -83,7 +84,7 @@ def getDownloadJobCount() -> int:
 def getAllDownloadJobs() -> list[DOWNLOAD_JOB_TABLE]:
 
     rows = cur.execute(
-        "SELECT * FROM DOWNLOAD_JOB"
+        "SELECT * FROM DOWNLOAD_JOB;"
     ).fetchall()
 
     return [
@@ -94,7 +95,7 @@ def getAllDownloadJobs() -> list[DOWNLOAD_JOB_TABLE]:
 def getDownloadJobById(id: int) -> DOWNLOAD_JOB_TABLE | None:
 
     row = cur.execute(
-        "SELECT * FROM DOWNLOAD_JOB WHERE id = ?",
+        "SELECT * FROM DOWNLOAD_JOB WHERE id = ?;",
         (id,)
     ).fetchone()
 
@@ -106,7 +107,7 @@ def getDownloadJobById(id: int) -> DOWNLOAD_JOB_TABLE | None:
 def getDownloadJobByUrl(url: str) -> DOWNLOAD_JOB_TABLE | None:
 
     row = cur.execute(
-        "SELECT * FROM DOWNLOAD_JOB WHERE url = ?",
+        "SELECT * FROM DOWNLOAD_JOB WHERE url = ?;",
         (url,)
     ).fetchone()
 
@@ -133,7 +134,7 @@ def updateDownloadJob(downloadJob: Download.Job) -> None:
             progress = ?,
             total_bytes = ?,
             downloaded_bytes = ?
-        WHERE id = ?
+        WHERE id = ?;
     """, (
         downloadJob.url,
         downloadJob.downloadType,

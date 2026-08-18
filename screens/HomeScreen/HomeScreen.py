@@ -24,6 +24,8 @@ from kivy.properties import (
 
 from screens.HomeScreen.ErrorCard import ErrorCard
 
+from screens.navigateToScreen import navigateToScreen
+
 import Colors
 
 import Download
@@ -33,6 +35,7 @@ import Youtube
 import db
 
 import helpers
+
 
 Window.clearcolor = Colors.white
 
@@ -81,13 +84,15 @@ class HomeScreen(MDScreen):
             MDTopAppBarLeadingButtonContainer(
                 MDActionTopAppBarButton(
                     icon="cog",
-                    icon_color=Colors.black
+                    icon_color=Colors.black,
+                    on_release=lambda instance: self._onTopAppBarSettingsButtonRelease(instance)
                 ),
             ),
             MDTopAppBarTrailingButtonContainer(
                 MDActionTopAppBarButton(
                     icon="youtube-subscription",
-                    icon_color=Colors.black
+                    icon_color=Colors.black,
+                    on_release=lambda instance: self._onTopAppBarDownloadsButtonRelease(instance)
                 ),
             ),
             type="small",
@@ -203,6 +208,14 @@ class HomeScreen(MDScreen):
         self.downloadJobOptionsDialogue.bind(
             on_download_options_confirmed=lambda instance, value: self._onDownloadJobOptionsDialogueConfirmed(instance, value)
         )
+
+    def _onTopAppBarSettingsButtonRelease(self, instance):
+        print("_onTopAppBarSettingsButtonRelease called")
+        navigateToScreen("settings")
+
+    def _onTopAppBarDownloadsButtonRelease(self, instance):
+        print("_onTopAppBarDownloadsButtonRelease called")
+        navigateToScreen("downloads")
 
     def _onInputTextFieldText(self, instance, value):
         url = value
