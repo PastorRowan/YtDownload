@@ -12,6 +12,7 @@ from kivymd.uix.label import MDLabel
 from kivy.metrics import dp, sp
 
 from .SettingItemRow import SettingItemRow
+from Settings import Settings
 
 from screens.navigateToScreen import navigateToScreen
 
@@ -80,10 +81,19 @@ class SettingsScreen(MDScreen):
 
         self.settings.add_widget(
             SettingItemRow(
-                title="Download location",
-                description="/storage/emulated/0/Download",
+                title="Video download location",
+                description=str(Settings.videoDownloadDirectory),
                 icon="folder-outline",
-                # on_release=self.download_location,
+                on_release=lambda instance: Settings.chooseVideoDownloadDirectory()
+            )
+        )
+
+        self.settings.add_widget(
+            SettingItemRow(
+                title="Audio download location",
+                description=str(Settings.audioDownloadDirectory),
+                icon="folder-outline",
+                on_release=lambda instance: Settings.chooseAudioDownloadDirectory()
             )
         )
 

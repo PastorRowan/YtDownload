@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import config
 
-import sqlite3
+from .execute import execute
 
 import Download
 
@@ -29,10 +29,6 @@ class DOWNLOAD_JOB_TABLE:
 
 dbPathStr = str(config.paths.base() / "sqlite3_database.db")
 
-con = sqlite3.connect(dbPathStr)
-
-cur = con.cursor()
-
 def allowedValues(list) -> str:
     return ", ".join(f"'{value}'" for value in list)
 
@@ -43,7 +39,7 @@ allowedAudioExtValues = allowedValues(Download.Job.ALLOWED_AUDIO_EXTS)
 allowedAbrValues = allowedValues(Download.Job.ALLOWED_ABRS)
 allowedStatusValues = allowedValues(Download.Job.ALLOWED_STATUSES)
 
-cur.execute(f"""
+execute(f"""
     CREATE TABLE IF NOT EXISTS DOWNLOAD_JOB(
         id INTEGER PRIMARY KEY,
         url TEXT NOT NULL,
@@ -63,19 +59,19 @@ cur.execute(f"""
     );
 """)
 
-cur.execute("""
+execute("""
     CREATE INDEX IF NOT EXISTS idx_download_job_url
     ON DOWNLOAD_JOB(url);
 """)
 
-cur.execute("""
+execute("""
     CREATE INDEX IF NOT EXISTS idx_created_at
     ON DOWNLOAD_JOB(created_at);
 """)
 
 def getDownloadJobCount() -> int:
 
-    row = cur.execute(
+    row = execute(
         "SELECT COUNT(*) FROM DOWNLOAD_JOB;"
     ).fetchone()
 
@@ -83,7 +79,7 @@ def getDownloadJobCount() -> int:
 
 def getAllDownloadJobs() -> list[DOWNLOAD_JOB_TABLE]:
 
-    rows = cur.execute(
+    rows = execute(
         "SELECT * FROM DOWNLOAD_JOB;"
     ).fetchall()
 
@@ -94,7 +90,7 @@ def getAllDownloadJobs() -> list[DOWNLOAD_JOB_TABLE]:
 
 def getDownloadJobById(id: int) -> DOWNLOAD_JOB_TABLE | None:
 
-    row = cur.execute(
+    row = execute(
         "SELECT * FROM DOWNLOAD_JOB WHERE id = ?;",
         (id,)
     ).fetchone()
@@ -106,7 +102,7 @@ def getDownloadJobById(id: int) -> DOWNLOAD_JOB_TABLE | None:
 
 def getDownloadJobByUrl(url: str) -> DOWNLOAD_JOB_TABLE | None:
 
-    row = cur.execute(
+    row = execute(
         "SELECT * FROM DOWNLOAD_JOB WHERE url = ?;",
         (url,)
     ).fetchone()
@@ -118,7 +114,7 @@ def getDownloadJobByUrl(url: str) -> DOWNLOAD_JOB_TABLE | None:
 
 def updateDownloadJob(downloadJob: Download.Job) -> None:
 
-    cur.execute(f"""
+    execute(f"""
         UPDATE DOWNLOAD_JOB
         SET
             url = ?,
@@ -164,7 +160,7 @@ def saveDownloadJob(downloadJob: Download.Job) -> None:
 
     elif getDownloadJobCount() >= config.MAX_DOWNLOAD_JOBS:
 
-        oldestRow = cur.execute("""
+        oldestRow = execute("""
             SELECT id
             FROM DOWNLOAD_JOB
             ORDER BY created_at ASC
@@ -182,7 +178,7 @@ def saveDownloadJob(downloadJob: Download.Job) -> None:
 
         return
 
-    cur.execute(f"""
+    cur = execute(f"""
         INSERT INTO DOWNLOAD_JOB(
             url,
             download_type,

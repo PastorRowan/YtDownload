@@ -1,9 +1,13 @@
 
-import config
-
 from typing import (
     Literal
 )
+
+import config
+
+from Settings import Settings
+
+from pathlib import Path
 
 from kivy.event import EventDispatcher
 from kivy.properties import (
@@ -206,6 +210,8 @@ class Job(EventDispatcher):
 
     downloadedBytes: int = NumericProperty(DEFAULT_DOWNLOADED_BYTES)
 
+    downloadLocation: Path = ObjectProperty(config.paths.default_downloads_dir())
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -283,10 +289,15 @@ class Job(EventDispatcher):
 
             print("str(config.paths.executable(ffmpeg)): ", str(config.paths.executable("ffmpeg")))
 
+            if self.downloadType == "video":
+                self.downloadLocation = Settings.videoDownloadLocation
+            elif self.downloadType == "audio":
+                self.downloadLocation = Settings.audioDownloadLocation
+
             base_options = {
                 "logger": helpers.YTDLPLogger(),
                 "outtmpl": os.path.join(
-                    str(config.paths.downloads_dir),
+                    str(self.downloadLocation),
                     "%(title)s [%(id)s].%(ext)s"
                 ),
                 "cachedir": str(config.paths.ytdlp_cache_dir()),

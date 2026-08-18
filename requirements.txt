@@ -17,6 +17,7 @@ materialyoucolor==3.0.3
 packaging==26.2
 pefile==2024.8.26
 pillow==12.3.0
+plyer==2.1.0
 pycairo==1.29.0
 Pygments==2.20.0
 pyinstaller==6.21.0

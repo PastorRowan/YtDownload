@@ -39,8 +39,6 @@ class _paths:
     SUPPORTED_PLATFORMS = ("windows", "macos", "linux", "android")
     PLATFORM: Literal["windows", "macos", "linux", "android"] = None
 
-    downloads_dir: Path | None = None
-
     def __init__(self, platformP: str):
 
         if platformP in self.SUPPORTED_PLATFORMS:
@@ -48,13 +46,11 @@ class _paths:
         else:
             raise RuntimeError(f"platform {platformP} unsupported. Supported platforms = {self.SUPPORTED_PLATFORMS}")
 
-        self.downloads_dir = self._default_downloads_dir()
-
     def _ensure_dir(self, path: Path) -> Path:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def _default_downloads_dir(self) -> Path:
+    def default_downloads_dir(self) -> Path:
         match self.PLATFORM:
             case "android":
                 try:
