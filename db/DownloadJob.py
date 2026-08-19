@@ -7,7 +7,7 @@ from .execute import execute
 
 import Download
 
-import time
+import sqlite3
 
 @dataclass
 class DOWNLOAD_JOB_TABLE:
@@ -69,84 +69,101 @@ execute("""
     ON DOWNLOAD_JOB(created_at);
 """)
 
-def getDownloadJobCount() -> int:
+def getDownloadJobCount() -> int | None:
 
-    row = execute(
-        "SELECT COUNT(*) FROM DOWNLOAD_JOB;"
-    ).fetchone()
+    try:
+        row = execute(
+            "SELECT COUNT(*) FROM DOWNLOAD_JOB;"
+        ).fetchone()
 
-    return row[0]
+        return row[0]
+    except sqlite3.OperationalError:
+        return 0
 
 def getAllDownloadJobs() -> list[DOWNLOAD_JOB_TABLE]:
 
-    rows = execute(
-        "SELECT * FROM DOWNLOAD_JOB;"
-    ).fetchall()
+    try:
+        rows = execute(
+            "SELECT * FROM DOWNLOAD_JOB;"
+        ).fetchall()
 
-    return [
-        DOWNLOAD_JOB_TABLE(*row)
-        for row in rows
-    ]
+        return [
+            DOWNLOAD_JOB_TABLE(*row)
+            for row in rows
+        ]
+    except sqlite3.OperationalError:
+        return []
 
 def getDownloadJobById(id: int) -> DOWNLOAD_JOB_TABLE | None:
 
-    row = execute(
-        "SELECT * FROM DOWNLOAD_JOB WHERE id = ?;",
-        (id,)
-    ).fetchone()
+    try:
+        row = execute(
+            "SELECT * FROM DOWNLOAD_JOB WHERE id = ?;",
+            (id,)
+        ).fetchone()
 
-    if row is None:
+        if row is None:
+            return None
+
+        return DOWNLOAD_JOB_TABLE(*row)
+
+    except sqlite3.OperationalError:
         return None
-
-    return DOWNLOAD_JOB_TABLE(*row)
 
 def getDownloadJobByUrl(url: str) -> DOWNLOAD_JOB_TABLE | None:
 
-    row = execute(
-        "SELECT * FROM DOWNLOAD_JOB WHERE url = ?;",
-        (url,)
-    ).fetchone()
+    try:
+        row = execute(
+            "SELECT * FROM DOWNLOAD_JOB WHERE url = ?;",
+            (url,)
+        ).fetchone()
 
-    if row is None:
+        if row is None:
+            return None
+
+        return DOWNLOAD_JOB_TABLE(*row)
+
+    except sqlite3.OperationalError:
         return None
-
-    return DOWNLOAD_JOB_TABLE(*row)
 
 def updateDownloadJob(downloadJob: Download.Job) -> None:
 
-    execute(f"""
-        UPDATE DOWNLOAD_JOB
-        SET
-            url = ?,
-            download_type = ?,
-            video_ext = ?,
-            video_height = ?,
-            audio_ext = ?,
-            abr = ?,
-            title = ?,
-            channel = ?,
-            thumbnail = ?,
-            status = ?,
-            progress = ?,
-            total_bytes = ?,
-            downloaded_bytes = ?
-        WHERE id = ?;
-    """, (
-        downloadJob.url,
-        downloadJob.downloadType,
-        downloadJob.videoExt,
-        downloadJob.videoHeight,
-        downloadJob.audioExt,
-        downloadJob.abr,
-        downloadJob.title,
-        downloadJob.channel,
-        downloadJob.thumbnail,
-        downloadJob.status,
-        downloadJob.progress,
-        downloadJob.totalBytes,
-        downloadJob.downloadedBytes,
-        downloadJob.id
-    ))
+    try:
+        execute(f"""
+            UPDATE DOWNLOAD_JOB
+            SET
+                url = ?,
+                download_type = ?,
+                video_ext = ?,
+                video_height = ?,
+                audio_ext = ?,
+                abr = ?,
+                title = ?,
+                channel = ?,
+                thumbnail = ?,
+                status = ?,
+                progress = ?,
+                total_bytes = ?,
+                downloaded_bytes = ?
+            WHERE id = ?;
+        """, (
+            downloadJob.url,
+            downloadJob.downloadType,
+            downloadJob.videoExt,
+            downloadJob.videoHeight,
+            downloadJob.audioExt,
+            downloadJob.abr,
+            downloadJob.title,
+            downloadJob.channel,
+            downloadJob.thumbnail,
+            downloadJob.status,
+            downloadJob.progress,
+            downloadJob.totalBytes,
+            downloadJob.downloadedBytes,
+            downloadJob.id
+        ))
+    except sqlite3.OperationalError:
+        print(f"Failed to update download with id '{downloadJob.id}'")
 
 def saveDownloadJob(downloadJob: Download.Job) -> None:
 

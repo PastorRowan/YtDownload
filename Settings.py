@@ -12,14 +12,29 @@ from kivy.properties import (
 
 from utils import ChooseDirectory
 
-from
+from db.Settings import getSettings, saveSettings
 
-class _Settings(EventDispatcher):
+class SettingsClass(EventDispatcher):
+
+    def __init__(self):
+
+        settingsRecord = getSettings()
+
+        if settingsRecord is None:
+            raise Exception("Settings record could not be found in the database.")
+
+        self.downloadAudioLanguage = settingsRecord.downloadAudioLanguage
+        self.darkMode = settingsRecord.darkMode
+        self.videoDownloadDirectory = settingsRecord.videoDownloadDirectory
+        self.audioDownloadDirectory = settingsRecord.audioDownloadDirectory
 
     downloadAudioLanguage: str = StringProperty("en")
     darkMode: bool = BooleanProperty(False)
     videoDownloadDirectory: Path = ObjectProperty(config.paths.default_downloads_dir())
     audioDownloadDirectory: Path = ObjectProperty(config.paths.default_downloads_dir())
+
+    def setDarkmode(self, newDarkMode: bool) -> None:
+        self.darkMode = newDarkMode
 
     def chooseVideoDownloadDirectory(self) -> None:
         chosenVideoDownloadDirectory = ChooseDirectory(title="Choose video download directory")
@@ -31,7 +46,7 @@ class _Settings(EventDispatcher):
         if chosenAudioDownloadDirectory is not None:
             self.chooseAudioDownloadLocation = chosenAudioDownloadDirectory
 
-    def saveSettings()
-        
+    def save(self) -> None:
+        saveSettings(self)
 
-Settings = _Settings()
+Settings = SettingsClass()
