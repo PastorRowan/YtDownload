@@ -22,7 +22,7 @@
 
 /dist/
 
-/venv/
+venv/
 /venv-windows/
 /venv-linux/
 
