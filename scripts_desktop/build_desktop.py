@@ -82,6 +82,12 @@ def main():
             #"--onefile",
             "--onedir",
 
+            # Fresh build
+            # "--clean",
+
+            "--hidden-import", "kivy.core.image.img_sdl2",
+            "--collect-submodules", "kivy.core.image",
+            "--collect-data", "kivy.core.image",
             "--collect-all", "kivymd",
 
             "--specpath", str(SPECPATH_DIR),

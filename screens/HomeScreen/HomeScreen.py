@@ -16,6 +16,7 @@ from kivymd.uix.appbar import (
 )
 
 from kivy.core.window import Window
+from kivy.uix.image import AsyncImage
 from kivy.metrics import dp
 from kivy.properties import (
     StringProperty,
@@ -63,23 +64,9 @@ class HomeScreen(MDScreen):
         downloadModels = db.DownloadData.getAllDownloads()
 
         for downloadModel in downloadModels:
-            download = Download.runDownload(
-                id=downloadModel.id,
-                url=downloadModel.url,
-                downloadType=downloadModel.downloadType,
-                videoExt=downloadModel.videoExt,
-                videoHeight=downloadModel.videoHeight,
-                audioExt=downloadModel.audioExt,
-                abr=downloadModel.abr,
-                title=downloadModel.title,
-                channel=downloadModel.channel,
-                thumbnail=downloadModel.thumbnail,
-                status=downloadModel.status,
-                progress=downloadModel.progress,
-                totalBytes=downloadModel.totalBytes,
-                downloadedBytes=downloadModel.downloadedBytes
-            )
-            self.downloadQueue.addDownload(download)
+            downloadData = conversions.downloadDataTableToDownloadData(downloadModel)
+            helpers.saveDownloadDataOnStatus(downloadData)
+            self.downloadQueue.addDownload(downloadData)
 
         self.topAppBar = MDTopAppBar(
             MDTopAppBarLeadingButtonContainer(
@@ -120,6 +107,17 @@ class HomeScreen(MDScreen):
             spacing=dp(12),
             padding=(dp(50), dp(50))
         )
+
+        """
+        self.rootVBoxLayout.add_widget(
+            AsyncImage(
+                source="https://i.ytimg.com/vi_webp/JgTdopl9yng/maxresdefault.webp",
+                size_hint=(1, None),
+                height=dp(200),
+                fit_mode="contain"
+            )
+        )
+        """
 
         self.titleBar = MDBoxLayout(
             orientation="horizontal",
@@ -267,10 +265,6 @@ class HomeScreen(MDScreen):
 
         downloadData.id = dbId
 
-        downloadData.bind(
-            status=lambda instance, value: db.DownloadData.saveDownload(
-                conversions.downloadDataToDownloadDataTable(instance)
-            )
-        )
+        helpers.saveDownloadDataOnStatus(downloadData)
 
         self.downloadQueue.addDownload(downloadData)

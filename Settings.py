@@ -22,6 +22,10 @@ class SettingsClass(EventDispatcher):
     audioDownloadDirectory: Path = ObjectProperty(config.paths.default_downloads_dir())
 
     def __init__(self):
+        super().__init__()
+
+        for name, prop in self.properties().items():
+            prop.bind(self, lambda instance, value: self._onPropertyChanged(instance, value))
 
         settingsRecord = getSettings()
 
@@ -43,6 +47,9 @@ class SettingsClass(EventDispatcher):
         chosenAudioDownloadDirectory = ChooseDirectory(title="Choose audio download directory")
         if chosenAudioDownloadDirectory is not None:
             self.audioDownloadDirectory = chosenAudioDownloadDirectory
+
+    def _onPropertyChanged(self, instance, value):
+        self.save()
 
     def save(self) -> None:
         saveSettings(SETTINGS_TABLE(

@@ -13,7 +13,12 @@ def execute(
     query: str,
     parameters: tuple = ()
 ) -> sqlite3.Cursor:
-    return _cur.execute(
+
+    cursor = _cur.execute(
         query,
         parameters
     )
+
+    _con.commit()
+
+    return cursor

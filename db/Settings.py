@@ -65,18 +65,37 @@ def getSettings() -> SETTINGS_TABLE | None:
         return None
 
 def saveSettings(settings: SETTINGS_TABLE) -> None:
-    execute(f"""
-        INSERT OR REPLACE INTO {TABLE_NAME} (
-            id,
-            download_audio_language,
-            dark_mode,
-            video_download_directory,
-            audio_download_directory
-        ) VALUES (?, ?, ?, ?, ?);
-    """, (
-        1,
-        settings.downloadAudioLanguage,
-        settings.darkMode,
-        settings.videoDownloadDirectory,
-        settings.audioDownloadDirectory
-    ))
+
+    if getSettingsRecordCount() == 0:
+        execute(f"""
+            INSERT INTO {TABLE_NAME} (
+                id,
+                download_audio_language,
+                dark_mode,
+                video_download_directory,
+                audio_download_directory
+            )
+            VALUES (?, ?, ?, ?, ?);
+        """, (
+            1,
+            settings.downloadAudioLanguage,
+            settings.darkMode,
+            str(settings.videoDownloadDirectory),
+            str(settings.audioDownloadDirectory)
+        ))
+    else:
+        execute(f"""
+            UPDATE {TABLE_NAME}
+            SET
+                download_audio_language = ?,
+                dark_mode = ?,
+                video_download_directory = ?,
+                audio_download_directory = ?
+            WHERE id = ?
+        """, (
+            settings.downloadAudioLanguage,
+            settings.darkMode,
+            str(settings.videoDownloadDirectory),
+            str(settings.audioDownloadDirectory),
+            1
+        ))

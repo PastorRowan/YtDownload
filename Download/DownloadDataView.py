@@ -4,7 +4,9 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.progressindicator import MDLinearProgressIndicator
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.menu import MDDropdownMenu
 from kivy.uix.widget import Widget
+from kivymd.uix.button import MDIconButton
 
 from kivy.uix.image import AsyncImage
 from kivy.metrics import dp, sp
@@ -12,6 +14,7 @@ from kivy.properties import (
     ObjectProperty
 )
 
+from .Types.DownloadTypes import Status
 from .DownloadData import DownloadData
 
 import Colors
@@ -19,11 +22,15 @@ import Colors
 class DownloadDataView(MDCard):
 
     downloadData: DownloadData = ObjectProperty(DownloadData())
-    vBoxLayout: MDBoxLayout
-    hBoxLayout: MDBoxLayout
+
+    contentLayout: MDBoxLayout
     thumbnailImage: AsyncImage
+    infoLayout: MDBoxLayout
+    menuContainer: MDBoxLayout
+    menuButton: MDIconButton
+    menu: MDDropdownMenu
     titleLabel: MDLabel
-    etaLabel: MDLabel
+    statusLabel: MDLabel
     progressIndicator: MDLinearProgressIndicator
     progressIndicatorHeight: float = dp(3)
 
@@ -92,6 +99,48 @@ class DownloadDataView(MDCard):
         self.infoLayout.add_widget(self.titleLabel)
         self.infoLayout.add_widget(self.statusLabel)
 
+        self.menuButtonContainer = MDBoxLayout(
+            orientation="vertical",
+            size_hint=(None, 1),
+            width=dp(48)
+        )
+
+        self.menuButton = MDIconButton(
+            icon="dots-vertical",
+            size_hint=(1, 1)
+        )
+
+        self.menu = MDDropdownMenu(
+            caller=self.menuButton,
+            items=[
+                {
+                    "text": "Pause",
+                    "on_release": lambda: self._onPauseButtonRelease()
+                },
+                {
+                    "text": "Resume",
+                    "on_release": lambda: self._onResumeButtonRelease()
+                },
+                {
+                    "text": "Cancel",
+                    "on_release": lambda: self._onCancelButtonRelease()
+                },
+            ],
+            hor_growth="left"
+        )
+
+        self.menuButtonContainer.add_widget(
+            Widget(
+                size_hint=(1, 1)
+            )
+        )
+        self.menuButtonContainer.add_widget(self.menuButton)
+        self.menuButtonContainer.add_widget(
+            Widget(
+                size_hint=(1, 1)
+            )
+        )
+        
         self.progressIndicator = MDLinearProgressIndicator(
             orientation="horizontal",
             size_hint=(1, None),
@@ -102,12 +151,17 @@ class DownloadDataView(MDCard):
 
         self.contentLayout.add_widget(self.thumbnailImage)
         self.contentLayout.add_widget(self.infoLayout)
+        self.contentLayout.add_widget(self.menuButtonContainer)
 
         self.add_widget(self.contentLayout)
         self.add_widget(self.progressIndicator)
 
         self.contentLayout.bind(
             height=lambda instance, value: self._onContentLayoutHeight(instance, value)
+        )
+
+        self.menuButton.bind(
+            on_release=lambda instance: self._onMenuButtonRelease(instance)
         )
 
         self._onDownloadDataChanged(self, self.downloadData)
@@ -155,26 +209,28 @@ class DownloadDataView(MDCard):
 
         self.titleLabel.text = title
 
-    def _onDownloadDataProgress(self, instance, value):
+    def _onDownloadDataProgress(self, instance, value) -> None:
         print("_onDownloadDataProgress value: ", value)
-        self.progressIndicator.value = value * 100
+        progress: float = value
+        self.progressIndicator.value = progress * 100
 
-    def _onDownloadDataDownloadedBytes(self, instance, value):
+    def _onDownloadDataDownloadedBytes(self, instance, value) -> None:
         print("_onDownloadDataDownloadedBytes value: ", value)
+        downloadedBytes: int = value
         self._updateStatusLabel()
 
     def _onDownloadDataEta(self, instance, value) -> None:
         print("_onDownloadDataEta value: ", value)
         self._updateStatusLabel()
 
-    def _onDownloadDataSpeed(self, instance, value):
+    def _onDownloadDataSpeed(self, instance, value) -> None:
         print("_onDownloadDataSpeed value", value)
 
-    def _onDownloadDataStatus(self, instance, value):
-        newStatus = value
+    def _onDownloadDataStatus(self, instance, value) -> None:
         print("_onDownloadDataStatus value", value)
+        newStatus = value
 
-    def _onDownloadDataChanged(self, instance, value):
+    def _onDownloadDataChanged(self, instance, value) -> None:
 
         downloadData: DownloadData = value
 
@@ -198,3 +254,21 @@ class DownloadDataView(MDCard):
         self._onDownloadDataEta(instance, downloadData.eta)
         self._onDownloadDataDownloadedBytes(instance, downloadData.downloadedBytes)
         self._onDownloadDataSpeed(instance, downloadData.speed)
+
+    def _onMenuButtonRelease(self, instance) -> None:
+        self.menu.open()
+
+    def _onPauseButtonRelease(self) -> None:
+        if self.downloadData.status != Status.PAUSED:
+            self.downloadData.status = Status.PAUSED
+        self.menu.dismiss()
+
+    def _onResumeButtonRelease(self) -> None:
+        if self.downloadData.status != Status.QUEUED:
+            self.downloadData.status = Status.QUEUED
+        self.menu.dismiss()
+
+    def _onCancelButtonRelease(self) -> None:
+        if self.downloadData.status != Status.CANCELLED:
+            self.downloadData.status = Status.CANCELLED
+        self.menu.dismiss()
