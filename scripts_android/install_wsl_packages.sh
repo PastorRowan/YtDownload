@@ -52,8 +52,10 @@ sudo apt install -y \
 echo "Checking Python..."
 python3.11 --version
 
-echo "Creating Python 3.11 virtual environment..."
+echo "Moving up to parent directory..."
+cd ..
 
+echo "Creating Python 3.11 virtual environment..."
 python3.11 -m venv venv
 
 echo "Activating virtual environment..."
