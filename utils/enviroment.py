@@ -1,14 +1,16 @@
 
+import sys
+
 def isPythonRightVersion(
-    requiredMajorVersion: int = -1,
-    requiredMinorVersion: int = -1,
-    requiredMicroVersion: int = -1,
+    requiredMajorVersion: int | None = None,
+    requiredMinorVersion: int | None = None,
+    requiredMicroVersion: int | None = None,
     throw: bool = True
 ) -> bool:
 
     REQUIRED_MAJOR = requiredMajorVersion
-    REQUIRED_MINOR = requiredMajorVersion
-    REQUIRED_MICRO = requiredMajorVersion
+    REQUIRED_MINOR = requiredMinorVersion
+    REQUIRED_MICRO = requiredMicroVersion
 
     CURRENT_MAJOR = sys.version_info.major
     CURRENT_MINOR = sys.version_info.minor
@@ -16,19 +18,19 @@ def isPythonRightVersion(
 
     isRightVersion = False
 
-    if (REQUIRED_MAJOR != -1) and (REQUIRED_MAJOR != CURRENT_MAJOR):
+    if (REQUIRED_MAJOR is not None) and (REQUIRED_MAJOR != CURRENT_MAJOR):
         isRightVersion = False
-    elif (REQUIRED_MINOR != -1) and (REQUIRED_MINOR != CURRENT_MINOR):
+    elif (REQUIRED_MINOR is not None) and (REQUIRED_MINOR != CURRENT_MINOR):
         isRightVersion = False
-    elif (REQUIRED_MICRO != -1) and (REQUIRED_MICRO != CURRENT_MICRO):
+    elif (REQUIRED_MICRO is not None) and (REQUIRED_MICRO != CURRENT_MICRO):
         isRightVersion = False
     else:
         isRightVersion = True
 
     if not isRightVersion:
 
-        def version_number_to_str(version: int) -> str:
-            if version == -1:
+        def version_number_to_str(version: int | None) -> str:
+            if version is None:
                 return "x"
             return str(version)
 
