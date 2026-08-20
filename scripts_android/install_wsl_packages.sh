@@ -51,6 +51,15 @@ sudo apt install -y \
 
 echo "Checking Python..."
 python3.11 --version
+
+echo "Creating Python 3.11 virtual environment..."
+
+python3.11 -m venv venv
+
+echo "Activating virtual environment..."
+source venv/bin/activate
+
+echo "Checking pip..."
 python3.11 -m pip --version
 
 echo "Installing Buildozer and Cython..."
