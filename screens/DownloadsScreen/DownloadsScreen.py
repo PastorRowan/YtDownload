@@ -19,23 +19,37 @@ from screens.navigateToScreen import navigateToScreen
 
 import Colors
 
-from db.DownloadJob import getAllDownloadJobs
+from db.DownloadData import getAllDownloads
 
 import Download
 
+import conversions
+
 class DownloadsScreen(MDScreen):
+
+    downloadDatas: List[Download.DownloadData]
 
     topAppBar: MDTopAppBar
     scroll: MDScrollView
     content: MDBoxLayout
     downloadsScreenTitle: MDLabel
-    downloadJobs: List[Download.Job]
-    downloadJobsView: Download.JobsView
+    downloadDatasView: Download.DownloadDatasView
 
     def on_pre_enter(self):
+        self.clear_widgets()
         self.build_downloads()
 
     def build_downloads(self):
+
+        self.downloadDatas = []
+
+        downloadRecords = getAllDownloads()
+        print("downloadRecords: ", downloadRecords)
+
+        for downloadRecord in downloadRecords:
+            self.downloadDatas.append(
+                conversions.downloadDataTableToDownloadData(downloadRecord)
+            )
 
         self.topAppBar = MDTopAppBar(
             MDTopAppBarLeadingButtonContainer(
@@ -77,25 +91,12 @@ class DownloadsScreen(MDScreen):
             height=dp(50)
         )
 
-        self.downloads = MDBoxLayout(
-            orientation="vertical",
-            size_hint=(1, None),
-            adaptive_height=True
+        self.downloadDatasView = Download.DownloadDatasView(
+            downloadDatas=self.downloadDatas
         )
 
-        downloadJobRecords = getAllDownloadJobs()
-
-        self.downloadJobs.clear()
-
-        for downloadJobRecord in downloadJobRecords:
-            self.downloadJobs.append(Download.Job(
-                *downloadJobRecord
-            ))
-
-        self.downloadJobsView = Download.JobsView(self.downloadJobs)
-
         self.content.add_widget(self.downloadsScreenTitle)
-        self.content.add_widget(self.downloadJobsView)
+        self.content.add_widget(self.downloadDatasView)
 
         self.scroll.add_widget(self.content)
 

@@ -1,2 +1,3 @@
 
-from .DownloadJob import *
+from . import DownloadData
+from . import Settings

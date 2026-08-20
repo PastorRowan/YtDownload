@@ -36,13 +36,14 @@ import db
 
 import helpers
 
+import conversions
 
 Window.clearcolor = Colors.white
 
 class HomeScreen(MDScreen):
 
     url: str = StringProperty("")
-    downloadJobQueue: Download.Queue = ObjectProperty(Download.Queue())
+    downloadQueue: Download.Queue = ObjectProperty(Download.Queue())
 
     topAppBar: MDTopAppBar
     centerScroll: MDScrollView
@@ -52,33 +53,33 @@ class HomeScreen(MDScreen):
     inputLabel: MDLabel
     inputTextField: MDTextField
     errorCard: ErrorCard
-    downloadJobQueueView: Download.QueueView
+    downloadQueueView: Download.QueueView
     downloadPromptButton: MDFabButton
-    downloadJobOptionsDialogue: Download.JobOptionsDialogue
+    downloadDataOptionsDialogue: Download.DownloadDataOptionsDialogue
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        jobModels = db.DownloadJob.getAllDownloadJobs()
+        downloadModels = db.DownloadData.getAllDownloads()
 
-        for jobModel in jobModels:
-            downloadJob = Download.Job(
-                id=jobModel.id,
-                url=jobModel.url,
-                downloadType=jobModel.downloadType,
-                videoExt=jobModel.videoExt,
-                videoHeight=jobModel.videoHeight,
-                audioExt=jobModel.audioExt,
-                abr=jobModel.abr,
-                title=jobModel.title,
-                channel=jobModel.channel,
-                thumbnail=jobModel.thumbnail,
-                status=jobModel.status,
-                progress=jobModel.progress,
-                totalBytes=jobModel.totalBytes,
-                downloadedBytes=jobModel.downloadedBytes
+        for downloadModel in downloadModels:
+            download = Download.runDownload(
+                id=downloadModel.id,
+                url=downloadModel.url,
+                downloadType=downloadModel.downloadType,
+                videoExt=downloadModel.videoExt,
+                videoHeight=downloadModel.videoHeight,
+                audioExt=downloadModel.audioExt,
+                abr=downloadModel.abr,
+                title=downloadModel.title,
+                channel=downloadModel.channel,
+                thumbnail=downloadModel.thumbnail,
+                status=downloadModel.status,
+                progress=downloadModel.progress,
+                totalBytes=downloadModel.totalBytes,
+                downloadedBytes=downloadModel.downloadedBytes
             )
-            self.downloadJobQueue.addJob(downloadJob)
+            self.downloadQueue.addDownload(download)
 
         self.topAppBar = MDTopAppBar(
             MDTopAppBarLeadingButtonContainer(
@@ -149,8 +150,8 @@ class HomeScreen(MDScreen):
 
         self.errorCard = ErrorCard()
 
-        self.downloadJobQueueView = Download.QueueView(
-            queue=self.downloadJobQueue
+        self.downloadQueueView = Download.QueueView(
+            queue=self.downloadQueue
         )
 
         self.rootVBoxLayout.add_widget(
@@ -175,7 +176,7 @@ class HomeScreen(MDScreen):
             )
         )
         self.rootVBoxLayout.add_widget(self.errorCard)
-        self.rootVBoxLayout.add_widget(self.downloadJobQueueView)
+        self.rootVBoxLayout.add_widget(self.downloadQueueView)
         self.rootVBoxLayout.add_widget(
             Widget(
                 size_hint=(1, None),
@@ -199,14 +200,14 @@ class HomeScreen(MDScreen):
         self.add_widget(self.centerScroll)
         self.add_widget(self.downloadPromptButton)
 
-        self.downloadJobOptionsDialogue = Download.JobOptionsDialogue()
+        self.downloadDataOptionsDialogue = Download.DownloadDataOptionsDialogue()
 
         self.downloadPromptButton.bind(
             on_release=lambda instance: self._onDownloadPromptButtonRelease(instance)
         )
 
-        self.downloadJobOptionsDialogue.bind(
-            on_download_options_confirmed=lambda instance, value: self._onDownloadJobOptionsDialogueConfirmed(instance, value)
+        self.downloadDataOptionsDialogue.bind(
+            on_download_options_confirmed=lambda instance, value: self._onDownloadDataOptionsDialogueConfirmed(instance, value)
         )
 
     def _onTopAppBarSettingsButtonRelease(self, instance):
@@ -231,24 +232,24 @@ class HomeScreen(MDScreen):
             self.errorCard.show = True
             return
 
-        job = Download.Job(url=url)
-        self.downloadJobOptionsDialogue.job = job
-        self.downloadJobOptionsDialogue.open()
+        downloadData = Download.DownloadData(url=url)
+        self.downloadDataOptionsDialogue.downloadData = downloadData
+        self.downloadDataOptionsDialogue.open()
 
-    def _onDownloadJobOptionsDialogueConfirmed(self, instance, value: Download.Job):
+    def _onDownloadDataOptionsDialogueConfirmed(self, instance, value: Download.runDownload):
 
-        job = value
+        downloadData: Download.DownloadData = value
 
-        videoUrl = job.url
+        videoUrl = downloadData.url
 
-        storedDownloadJobData = db.getDownloadJobByUrl(videoUrl)
+        storedDownloadData = db.DownloadData.getDownloadByUrl(videoUrl)
 
-        print("storedDownloadJobData: ", storedDownloadJobData)
+        print("storedDownloadData: ", storedDownloadData)
 
-        if storedDownloadJobData is not None:
-            job.title = storedDownloadJobData.title
-            job.channel = storedDownloadJobData.channel
-            job.thumbnail = storedDownloadJobData.thumbnail
+        if storedDownloadData is not None:
+            downloadData.title = storedDownloadData.title
+            downloadData.channel = storedDownloadData.channel
+            downloadData.thumbnail = storedDownloadData.thumbnail
         else:
 
             youtubeVideoMetadata = Youtube.getMetadata(videoUrl)
@@ -256,12 +257,20 @@ class HomeScreen(MDScreen):
             print("youtubeVideoMetadata: ", youtubeVideoMetadata)
 
             if youtubeVideoMetadata is not None:
-                job.title = youtubeVideoMetadata.title
-                job.channel = youtubeVideoMetadata.author_name
-                job.thumbnail = youtubeVideoMetadata.thumbnail_url
+                downloadData.title = youtubeVideoMetadata.title
+                downloadData.channel = youtubeVideoMetadata.author_name
+                downloadData.thumbnail = youtubeVideoMetadata.thumbnail_url
 
-        job.bind(
-            status=lambda instance, value: db.saveDownloadJob(instance)
+        dbId = db.DownloadData.createDownload(conversions.downloadDataToDownloadDataTable(
+            downloadData
+        ))
+
+        downloadData.id = dbId
+
+        downloadData.bind(
+            status=lambda instance, value: db.DownloadData.saveDownload(
+                conversions.downloadDataToDownloadDataTable(instance)
+            )
         )
 
-        self.downloadJobQueue.addJob(job)
+        self.downloadQueue.addDownload(downloadData)

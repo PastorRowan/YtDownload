@@ -5,10 +5,15 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 
 from kivy.uix.widget import Widget
-
 from kivy.metrics import dp
+from kivy.properties import (
+    StringProperty
+)
 
 class SettingItemRow(MDCard):
+
+    title: str = StringProperty("")
+    description: str = StringProperty("")
 
     settingIconContainer: MDBoxLayout
     settingIcon: MDIcon
@@ -18,8 +23,6 @@ class SettingItemRow(MDCard):
 
     def __init__(
         self,
-        title: str,
-        description: str,
         icon: str = None,
         on_release=None,
         **kwargs
@@ -66,7 +69,7 @@ class SettingItemRow(MDCard):
         )
 
         self.settingTitle = MDLabel(
-            text=title,
+            text=self.title,
             font_style="Title",
             role="large",
             theme_text_color="Primary",
@@ -75,7 +78,7 @@ class SettingItemRow(MDCard):
         )
 
         self.settingDescription = MDLabel(
-            text=description,
+            text=self.description,
             font_style="Body",
             role="medium",
             theme_text_color="Secondary",
@@ -93,3 +96,16 @@ class SettingItemRow(MDCard):
             self.bind(
                 on_release=lambda instance: on_release(instance)
             )
+
+        self.bind(
+            title=lambda instance, value: self._onTitle(instance, value),
+            description=lambda instance, value: self._onDescription(instance, value)
+        )
+
+    def _onTitle(self, instance, value):
+        title = value
+        self.settingTitle.text = title
+
+    def _onDescription(self, instance, value):
+        description = value
+        self.settingDescription.text = description

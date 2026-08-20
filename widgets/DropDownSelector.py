@@ -24,9 +24,9 @@ class _DropDownMenuItem(TypedDict):
 
 class DropDownSelector(MDListItem):
 
-    icon = StringProperty("menu")
+    icon: str = StringProperty("menu")
     values: list[_DropDownMenuItem] = ListProperty([])
-    selected_index = NumericProperty(0)
+    selectedIndex: int = NumericProperty(0)
 
     formatter = ObjectProperty(lambda value: str(value))
 
@@ -52,7 +52,7 @@ class DropDownSelector(MDListItem):
         self.bind(
             icon=self._update_icon,
             values=self._update_menu,
-            selected_index=self._update_selection,
+            selectedIndex=self._update_selection,
         )
 
         self.bind(
@@ -76,7 +76,7 @@ class DropDownSelector(MDListItem):
             self.menu.items.append({
                 "text": self.formatter(value),
                 "height": dp(36),
-                "on_release": lambda i=index: self.select(i),
+                "on_release": lambda i=index: self.selectIndex(i),
             })
 
     def _update_selection(self, *_):
@@ -85,7 +85,7 @@ class DropDownSelector(MDListItem):
             self.textLabel.text = ""
             return
 
-        value = self.values[self.selected_index]
+        value = self.values[self.selectedIndex]
         self.textLabel.text = self.formatter(value)
 
     def on_selection_changed(self, value):
@@ -94,9 +94,20 @@ class DropDownSelector(MDListItem):
         """
         pass
 
-    def select(self, index: int):
+    def selectIndex(self, index: int):
 
-        self.selected_index = index
+        self.selectedIndex = index
+        self.menu.dismiss()
+
+        self.dispatch(
+            "on_selection_changed",
+            self.selected_value
+        )
+
+    def selectValue(self, value):
+
+        self.selectedIndex = self.values.index(value)
+
         self.menu.dismiss()
 
         self.dispatch(
@@ -108,7 +119,7 @@ class DropDownSelector(MDListItem):
     def selected_value(self):
         if not self.values:
             return None
-        return self.values[self.selected_index]
+        return self.values[self.selectedIndex]
 
     def open_menu(self):
 

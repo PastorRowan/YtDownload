@@ -30,7 +30,7 @@ def platform():
             return "linux"
         return "unknown"
 
-MAX_DOWNLOAD_JOBS = 100
+MAX_DOWNLOADS = 100
 
 class _paths:
 

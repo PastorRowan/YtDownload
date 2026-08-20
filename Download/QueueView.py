@@ -12,17 +12,17 @@ from kivy.metrics import dp
 import Colors
 
 from .Queue import Queue
-from .JobsView import JobsView
+from .DownloadDatasView import DownloadDatasView
 
 class QueueView(MDBoxLayout):
 
     queue: Queue = ObjectProperty(Queue())
 
-    queuedJobsViewLabel: MDLabel
-    queuedJobsView: JobsView
+    queuedDownloadDatasViewLabel: MDLabel
+    queuedDownloadDatasView: DownloadDatasView
 
-    pausedJobsViewLabel: MDLabel
-    pausedJobsView: JobsView
+    pausedDownloadDatasViewLabel: MDLabel
+    pausedDownloadDatasView: DownloadDatasView
 
     def __init__(self, **kwargs):
 
@@ -37,20 +37,20 @@ class QueueView(MDBoxLayout):
             **kwargs
         )
 
-        self.queuedJobsViewLabel = MDLabel(text="Queued Downloads")
-        self.queuedJobsView = JobsView(
-            jobs=self.queue.queuedJobs
+        self.queuedDownloadDatasViewLabel = MDLabel(text="Queued Downloads")
+        self.queuedDownloadDatasView = DownloadDatasView(
+            downloadDatas=self.queue.queuedDownloads
         )
 
-        self.pausedJobsViewLabel = MDLabel(text="Paused Downloads")
-        self.pausedJobsView = JobsView(
-            jobs=self.queue.pausedJobs
+        self.pausedDownloadDatasViewLabel = MDLabel(text="Paused Downloads")
+        self.pausedDownloadDatasView = DownloadDatasView(
+            downloadDatas=self.queue.pausedDownloads
         )
 
-        self.add_widget(self.queuedJobsViewLabel)
-        self.add_widget(self.queuedJobsView)
-        self.add_widget(self.pausedJobsViewLabel)
-        self.add_widget(self.pausedJobsView)
+        self.add_widget(self.queuedDownloadDatasViewLabel)
+        self.add_widget(self.queuedDownloadDatasView)
+        self.add_widget(self.pausedDownloadDatasViewLabel)
+        self.add_widget(self.pausedDownloadDatasView)
 
         self.bind(
             queue=lambda instance, value: self._onQueue(instance, value)
@@ -70,31 +70,31 @@ class QueueView(MDBoxLayout):
             return
 
         queue.bind(
-            queuedJobs=lambda instance, value: self._onQueuedJobs(instance, value),
-            pausedJobs=lambda instance, value: self._onPausedJobs(instance, value),
+            queuedDownloads=lambda instance, value: self._onQueuedDownloads(instance, value),
+            pausedDownloads=lambda instance, value: self._onPausedDownloads(instance, value),
         )
 
-        self._onQueuedJobs(
+        self._onQueuedDownloads(
             queue,
-            queue.queuedJobs
+            queue.queuedDownloads
         )
-        self._onPausedJobs(
+        self._onPausedDownloads(
             queue,
-            queue.pausedJobs
+            queue.pausedDownloads
         )
 
-    def _onQueuedJobs(self, instance, value):
-        queuedJobs = value
-        if len(queuedJobs) <= 0:
-            self.queuedJobsViewLabel.opacity = 0
+    def _onQueuedDownloads(self, instance, value):
+        queuedDownloads = value
+        if len(queuedDownloads) <= 0:
+            self.queuedDownloadDatasViewLabel.opacity = 0
         else:
-            self.queuedJobsViewLabel.opacity = 1
-        self.queuedJobsView.jobs = queuedJobs
+            self.queuedDownloadDatasViewLabel.opacity = 1
+        self.queuedDownloadDatasView.downloads = queuedDownloads
 
-    def _onPausedJobs(self, instance, value):
-        pausedJobs = value
-        if len(pausedJobs) <= 0:
-            self.pausedJobsViewLabel.opacity = 0
+    def _onPausedDownloads(self, instance, value):
+        pausedDownloads = value
+        if len(pausedDownloads) <= 0:
+            self.pausedDownloadDatasViewLabel.opacity = 0
         else:
-            self.pausedJobsViewLabel.opacity = 1
-        self.pausedJobsView.jobs = pausedJobs
+            self.pausedDownloadDatasViewLabel.opacity = 1
+        self.pausedDownloadDatasView.downloads = pausedDownloads

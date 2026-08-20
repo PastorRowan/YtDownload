@@ -21,6 +21,7 @@ from kivymd.uix.screenmanager import MDScreenManager
 
 from screens.HomeScreen.HomeScreen import HomeScreen
 from screens.SettingsScreen.SettingsScreen import SettingsScreen
+from screens.DownloadsScreen.DownloadsScreen import DownloadsScreen
 
 import Colors
 
@@ -37,6 +38,7 @@ class Application(MDApp):
 
         self.screenManager.add_widget(HomeScreen(name="home"))
         self.screenManager.add_widget(SettingsScreen(name="settings"))
+        self.screenManager.add_widget(DownloadsScreen(name="downloads"))
 
         return self.screenManager
 

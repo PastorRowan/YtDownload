@@ -22,18 +22,23 @@ from kivy.properties import (
 )
 from kivy.metrics import dp
 
-from .Job import Job
+from .DownloadData import DownloadData
+
+from .Types import (
+    AudioExt,
+    Abr
+)
 
 from widgets import DropDownSelector
 
-class JobAudioFormatDialogue(MDDialog):
+class DownloadDataAudioFormatDialogue(MDDialog):
 
-    job: Job = ObjectProperty(Job())
+    downloadData: DownloadData = ObjectProperty(DownloadData())
 
-    selectedAudioExt: str = StringProperty(Job.DEFAULT_AUDIO_EXT)
+    selectedAudioExt: AudioExt = ObjectProperty(AudioExt.default())
     audioExtSelector: DropDownSelector
 
-    selectedAbr: str = StringProperty(Job.DEFAULT_ABR)
+    selectedAbr: Abr = ObjectProperty(Abr.default())
     abrSelector: DropDownSelector
 
     def __init__(self, **kwargs):
@@ -44,16 +49,16 @@ class JobAudioFormatDialogue(MDDialog):
 
         self.audioExtSelector = DropDownSelector(
             icon="file-audio-outline",
-            values=self.job.audioExts
+            values=self.downloadData.audioExts
         )
-        self.audioExtSelector.select(Job.DEFAULT_AUDIO_EXT_INDEX)
+        self.audioExtSelector.selectValue(self.selectedAudioExt)
 
         self.abrSelector = DropDownSelector(
             icon="high-definition-box",
-            values=self.job.abrs,
+            values=self.downloadData.abrs,
             formatter=lambda abr: f"{abr}kbps"
         )
-        self.abrSelector.select(Job.DEFAULT_ABR_INDEX)
+        self.abrSelector.selectValue(self.selectedAbr)
 
         self.add_widget(
             MDDialogIcon(
@@ -108,7 +113,7 @@ class JobAudioFormatDialogue(MDDialog):
         )
 
         self.bind(
-            job=lambda instance, value: self._onJob(instance, value)
+            downloadData=lambda instance, value: self._onDownload(instance, value)
         )
 
         self.audioExtSelector.bind(
@@ -119,38 +124,38 @@ class JobAudioFormatDialogue(MDDialog):
             on_selection_changed=lambda instance, value: self._onSelectedAbr(instance, value)
         )
 
-        self._onJob(self, self.job)
+        self._onDownloadData(self, self.downloadData)
 
         self.register_event_type("on_confirm")
 
-    def _onJob(self, instance, value):
+    def _onDownloadData(self, instance, value):
 
-        job = value
+        downloadData = value
 
-        job.bind(
-            audioExts=lambda instance, value: self._onJobAudioExts(instance, value),
-            abrs=lambda instance, value: self._onJobAbrs(instance, value)
+        downloadData.bind(
+            audioExts=lambda instance, value: self._onDownloadDataAudioExts(instance, value),
+            abrs=lambda instance, value: self._onDownloadDataAbrs(instance, value)
         )
 
-        self._onJobAudioExts(self, job.audioExts)
-        self._onJobAbrs(self, job.abrs)
+        self._onDownloadDataAudioExts(self, downloadData.audioExts)
+        self._onDownloadDataAbrs(self, downloadData.abrs)
 
         self._onSelectedAudioExt(self, self.selectedAudioExt)
         self._onSelectedAbr(self, self.selectedAbr)
 
-    def _onJobAudioExts(self, instance, value):
-        print("_onJobAudioExts")
+    def _onDownloadDataAudioExts(self, instance, value):
+        print("_onDownloadDataAudioExts")
 
-    def _onJobAbrs(self, instance, value):
-        print("_onJobAbrs")
+    def _onDownloadDataAbrs(self, instance, value):
+        print("_onDownloadAbrs")
 
     def _onSelectedAudioExt(self, instance, value) -> None:
         print("_onSelectedAudioExt value: ", value)
-        self.job.audioExt = value
+        self.downloadData.audioExt = value
 
     def _onSelectedAbr(self, instance, value) -> None:
         print("_onSelectedAbr value: ", value)
-        self.job.abr = value
+        self.downloadData.abr = value
 
     def on_confirm(self, data):
         """

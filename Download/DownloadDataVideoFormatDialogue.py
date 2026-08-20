@@ -28,18 +28,23 @@ from kivy.properties import (
 )
 from kivy.metrics import dp
 
-from .Job import Job
+from .Types import (
+    VideoExt,
+    VideoHeight
+)
+
+from .DownloadData import DownloadData
 
 from widgets import DropDownSelector
 
-class JobVideoFormatDialogue(MDDialog):
+class DownloadDataVideoFormatDialogue(MDDialog):
 
-    job: Job = ObjectProperty(Job())
+    downloadData: DownloadData = ObjectProperty(DownloadData())
 
-    selectedVideoExt: str = StringProperty(Job.DEFAULT_VIDEO_EXT)
+    selectedVideoExt: VideoExt = ObjectProperty(VideoExt.default())
     videoExtSelector: DropDownSelector
 
-    selectedVideoHeight: str = StringProperty(Job.DEFAULT_VIDEO_HEIGHT)
+    selectedVideoHeight: VideoHeight = ObjectProperty(VideoHeight.default())
     videoHeightSelector: DropDownSelector
 
     def __init__(self, **kwargs):
@@ -50,16 +55,16 @@ class JobVideoFormatDialogue(MDDialog):
 
         self.videoExtSelector = DropDownSelector(
             icon="file-video-outline",
-            values=self.job.videoExts
+            values=self.downloadData.videoExts
         )
-        self.videoExtSelector.select(Job.DEFAULT_VIDEO_EXT_INDEX)
+        self.videoExtSelector.selectValue(self.selectedVideoExt)
 
         self.videoHeightSelector = DropDownSelector(
             icon="high-definition-box",
-            values=self.job.videoHeights,
+            values=self.downloadData.videoHeights,
             formatter=lambda videoHeight: f"{videoHeight}p"
         )
-        self.videoHeightSelector.select(Job.DEFAULT_VIDEO_HEIGHT_INDEX)
+        self.videoHeightSelector.selectValue(self.selectedVideoHeight)
 
         self.add_widget(
             MDDialogIcon(
@@ -114,7 +119,7 @@ class JobVideoFormatDialogue(MDDialog):
         )
 
         self.bind(
-            job=lambda instance, value: self._onJob(instance, value)
+            downloadData=lambda instance, value: self._onDownloadData(instance, value)
         )
 
         self.videoExtSelector.bind(
@@ -125,38 +130,38 @@ class JobVideoFormatDialogue(MDDialog):
             on_selection_changed=lambda instance, value: self._onSelectedVideoHeight(instance, value)
         )
 
-        self._onJob(self, self.job)
+        self._onDownloadData(self, self.downloadData)
 
         self.register_event_type("on_confirm")
 
-    def _onJob(self, instance, value):
+    def _onDownloadData(self, instance, value):
 
-        job = value
+        downloadData = value
 
-        job.bind(
-            videoExts=lambda instance, value: self._onJobVideoExts(instance, value),
-            videoHeights=lambda instance, value: self._onJobVideoHeights(instance, value)
+        downloadData.bind(
+            videoExts=lambda instance, value: self._onDownloadDataVideoExts(instance, value),
+            videoHeights=lambda instance, value: self._onDownloadDataVideoHeights(instance, value)
         )
 
-        self._onJobVideoExts(self, job.videoExts)
-        self._onJobVideoHeights(self, job.videoHeights)
+        self._onDownloadDataVideoExts(self, downloadData.videoExts)
+        self._onDownloadDataVideoHeights(self, downloadData.videoHeights)
 
         self._onSelectedVideoExt(self, self.selectedVideoExt)
         self._onSelectedVideoHeight(self, self.selectedVideoHeight)
 
-    def _onJobVideoExts(self, instance, value) -> None:
-        print("_onJobVideoExts")
+    def _onDownloadDataVideoExts(self, instance, value) -> None:
+        print("_onDownloadDataVideoExts")
 
-    def _onJobVideoHeights(self, instance, value) -> None:
-        print("_onJobVideoHeights")
+    def _onDownloadDataVideoHeights(self, instance, value) -> None:
+        print("_onDownloadDataVideoHeights")
 
     def _onSelectedVideoExt(self, instance, value) -> None:
         print("_onSelectedVideoExt value: ", value)
-        self.job.videoExt = value
+        self.downloadData.videoExt = value
 
     def _onSelectedVideoHeight(self, instance, value) -> None:
         print("_onSelectedVideoHeight value: ", value)
-        self.job.videoHeight = value
+        self.downloadData.videoHeight = value
 
     def on_confirm(self, data) -> None:
         """

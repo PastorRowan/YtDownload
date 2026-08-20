@@ -1,30 +1,24 @@
 
-import yt_dlp
-
 from kivy.event import EventDispatcher
 from kivy.properties import (
-    NumericProperty,
-    StringProperty,
     ObjectProperty,
-    BooleanProperty,
     ListProperty
 )
 from kivy.clock import Clock
 
 from threading import Thread
 
-from urllib.parse import urlparse
-
-from . import Types
-from .Job import Job
+from .Types import Status
+from .DownloadData import DownloadData
+from .runDownload import runDownload
 
 class Queue(EventDispatcher):
 
-    queuedJobs: list[Job] = ListProperty([])
+    queuedDownloads: list[DownloadData] = ListProperty([])
 
-    pausedJobs: list[Job] = ListProperty([])
+    pausedDownloads: list[DownloadData] = ListProperty([])
 
-    _currentJob: Job | None = ObjectProperty(None, allownone=True)
+    _currentDownload: DownloadData | None = ObjectProperty(None, allownone=True)
     _currentThread: Thread | None = ObjectProperty(None, allownone=True)
 
     def __init__(self):
@@ -36,20 +30,20 @@ class Queue(EventDispatcher):
             (
                 self._currentThread is not None
             ) or (
-                not self.queuedJobs
+                not self.queuedDownloads
             )
         ):
             return
 
-        job = self.queuedJobs[0]
+        downloadData = self.queuedDownloads[0]
 
-        job.status = "downloading"
+        downloadData.status = Status.DOWNLOADING
 
-        self._currentJob = job
+        self._currentDownload = downloadData
 
         self._currentThread = Thread(
             target=self._downloadWorker,
-            args=(job,),
+            args=(downloadData,),
             daemon=True
         )
 
@@ -57,124 +51,126 @@ class Queue(EventDispatcher):
 
     def _downloadWorker(
         self,
-        job: Job
+        downloadData: DownloadData
     ) -> None:
         try:
-            job.run()
+            runDownload(downloadData)
         except Exception:
             pass
         finally:
             Clock.schedule_once(
-                lambda dt: self._onDownloadFinished(job)
+                lambda dt: self._onDownloadFinished(downloadData)
             )
 
     def _onDownloadFinished(
         self,
-        job: Job
+        downloadData: DownloadData
     ) -> None:
 
-        if job not in self.queuedJobs:
+        if downloadData not in self.queuedDownloads:
             return
 
-        was_current = (self._currentJob is job)
+        was_current = (self._currentDownload is downloadData)
 
-        if job.status in ("finished", "cancelled", "error") and was_current:
-            self.queuedJobs = [j for j in self.queuedJobs if j is not job]
+        if downloadData.status in ("finished", "cancelled", "error") and was_current:
+            self.queuedDownloads = [j for j in self.queuedDownloads if j is not downloadData]
 
-        self._currentJob = None
+        self._currentDownload = None
         self._currentThread = None
         self._startNextDownload()
 
-    def addJob(
+    def addDownload(
         self,
-        job: Job
+        downloadData: DownloadData
     ) -> None:
 
         if (
             (
-                job in self.queuedJobs
+                downloadData in self.queuedDownloads
             ) or (
-                job in self.pausedJobs
+                downloadData in self.pausedDownloads
             )
         ):
             return
 
-        if job.status in ("queued", "downloading"):
-            self.queuedJobs = self.queuedJobs + [job]
+        if downloadData.status in (Status.QUEUED, Status.DOWNLOADING):
+            self.queuedDownloads = self.queuedDownloads + [downloadData]
 
-        if job.status == "paused":
-            self.pausedJobs = self.pausedJobs + [job]
+        if downloadData.status == Status.PAUSED:
+            self.pausedDownloads = self.pausedDownloads + [downloadData]
 
         if self._currentThread is None:
             self._startNextDownload()
 
-    def cancelJob(self, job: Job):
+    def cancelDownload(
+        self, downloadData: DownloadData
+    ):
 
         if (
             (
-                job not in self.queuedJobs
+                downloadData not in self.queuedDownloads
             ) and (
-                job not in self.pausedJobs
+                downloadData not in self.pausedDownloads
             )
         ):
             return
         
-        job.status = "cancelled"
+        downloadData.status = Status.CANCELLED
 
-        was_current = (self._currentJob is job)
+        self.queuedDownloads = [j for j in self.queuedDownloads if j is not downloadData]
 
-        self.queuedJobs = [j for j in self.queuedJobs if j is not job]
+        was_current = (self._currentDownload is downloadData)
 
         if was_current:
-            self._currentJob = None
+            self._currentDownload = None
             self._currentThread = None
             self._startNextDownload()
    
-    def pauseJob(self, job: Job):
+    def pauseDownload(self, downloadData: DownloadData):
 
         if (
             (
-                job not in self.queuedJobs
+                downloadData not in self.queuedDownloads
             ) or (
-                job in self.pausedJobs
+                downloadData in self.pausedDownloads
             )
         ):
             return
 
-        job.status = "paused"
+        downloadData.status = Status.PAUSED
 
-        was_current = (self._currentJob is job)
+        was_current = (self._currentDownload is downloadData)
 
         # remove from active queue
-        self.queuedJobs = [j for j in self.queuedJobs if j is not job]
+        self.queuedDownloads = [j for j in self.queuedDownloads if j is not downloadData]
 
         # push to back of paused queue
-        self.pausedJobs = self.pausedJobs + [job]
+        self.pausedDownloads = self.pausedDownloads + [downloadData]
 
         if was_current:
-            self._currentJob = None
+            self._currentDownload = None
             self._currentThread = None
             self._startNextDownload()
 
-    def resumeJob(self, job: Job):
+    def resumeDownload(self, downloadData: DownloadData):
 
         if (
             (
-                job in self.queuedJobs
+                downloadData in self.queuedDownloads
             ) or (
-                job not in self.pausedJobs
+                downloadData not in self.pausedDownloads
             )
         ):
             return
 
-        job.status = "queued"
+        downloadData.status = Status.QUEUED
 
         # remove from paused queue
-        self.pausedJobs  = [j for j in self.pausedJobs if j is not job]
+        self.pausedDownloads  = [j for j in self.pausedDownloads if j is not downloadData]
 
         # push to back of active queue
-        self.queuedJobs = [j for j in self.queuedJobs if j is not job]  + [job]
+        self.queuedDownloads = [j for j in self.queuedDownloads if j is not downloadData]  + [downloadData]
 
         # if nothing is running, start immediately
-        if self._currentJob is None:
+        if self._currentDownload is None:
             self._startNextDownload()

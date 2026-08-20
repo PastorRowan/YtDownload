@@ -27,6 +27,7 @@
 /venv-linux/
 
 *.db
+*.db-journal
 
 *:Zone.Identifier
 

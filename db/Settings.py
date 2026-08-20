@@ -5,8 +5,6 @@ from .execute import execute
 
 from pathlib import Path
 
-from Settings import SettingsClass
-
 import sqlite3
 
 @dataclass
@@ -16,11 +14,13 @@ class SETTINGS_TABLE:
     videoDownloadDirectory: Path
     audioDownloadDirectory: Path
 
+TABLE_NAME = "SETTINGS"
+
 def getSettingsRecordCount() -> int:
 
     try:
         row = execute(
-            "SELECT COUNT(*) FROM SETTINGS;"
+            f"SELECT COUNT(*) FROM {TABLE_NAME};"
         ).fetchone()
 
         return row[0]
@@ -28,7 +28,7 @@ def getSettingsRecordCount() -> int:
         return 0
 
 execute(f"""
-    CREATE TABLE IF NOT EXISTS SETTINGS(
+    CREATE TABLE IF NOT EXISTS {TABLE_NAME}(
         id INTEGER PRIMARY KEY CHECK (id = 1),
         download_audio_language TEXT NOT NULL,
         dark_mode BOOLEAN NOT NULL,
@@ -47,9 +47,12 @@ def getSettings() -> SETTINGS_TABLE | None:
                 dark_mode,
                 video_download_directory,
                 audio_download_directory
-            FROM SETTINGS
+            FROM {TABLE_NAME}
             WHERE id = 1;
         """).fetchone()
+
+        if row is None:
+            return None
 
         return SETTINGS_TABLE(
             downloadAudioLanguage=row[0],
@@ -61,9 +64,9 @@ def getSettings() -> SETTINGS_TABLE | None:
     except sqlite3.OperationalError:
         return None
 
-def saveSettings(settings: SettingsClass) -> None:
+def saveSettings(settings: SETTINGS_TABLE) -> None:
     execute(f"""
-        INSERT OR REPLACE INTO SETTINGS (
+        INSERT OR REPLACE INTO {TABLE_NAME} (
             id,
             download_audio_language,
             dark_mode,
@@ -77,5 +80,3 @@ def saveSettings(settings: SettingsClass) -> None:
         settings.videoDownloadDirectory,
         settings.audioDownloadDirectory
     ))
-
-saveSettings(SettingsClass())

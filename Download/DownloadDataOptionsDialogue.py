@@ -35,13 +35,13 @@ from kivy.properties import (
     ListProperty
 )
 
-from .Job import Job
-from .JobVideoFormatDialogue import JobVideoFormatDialogue
-from .JobAudioFormatDialogue import JobAudioFormatDialogue
+from .DownloadData import DownloadData
+from .DownloadDataVideoFormatDialogue import DownloadDataVideoFormatDialogue
+from .DownloadDataAudioFormatDialogue import DownloadDataAudioFormatDialogue
 
-class JobOptionsDialogue(MDDialog):
+class DownloadDataOptionsDialogue(MDDialog):
 
-    job: Job = ObjectProperty(Job())
+    downloadData: DownloadData = ObjectProperty(DownloadData())
 
     container: MDDialogContentContainer
     fileNameFieldVBox: MDBoxLayout
@@ -87,7 +87,7 @@ class JobOptionsDialogue(MDDialog):
         self.fileNameFieldVBox.add_widget(
             MDTextField(
                 size_hint=(1, None),
-                text=self.job.fileName,
+                text=self.downloadData.fileName,
                 hint_text="File Name",
                 multiline=False
             )
@@ -225,42 +225,42 @@ class JobOptionsDialogue(MDDialog):
         self.add_widget(self.container)
 
         self.bind(
-            job=lambda instance, value: self._onJob(instance, value)
+            downloadData=lambda instance, value: self._onDownloadData(instance, value)
         )
 
-        self._onJob(self, self.job)
+        self._onDownloadData(self, self.downloadData)
 
         self.register_event_type("on_download_options_confirmed")
 
-    def _onJob(self, instance, value):
+    def _onDownloadData(self, instance, value)-> None:
 
-        job = value
+        downloadData = value
 
-        self.jobVideoFormatDialogue = JobVideoFormatDialogue(
-            job=job
+        self.downloadDataVideoFormatDialogue = DownloadDataVideoFormatDialogue(
+            downloadData=downloadData
         )
 
-        self.jobAudioFormatDialogue = JobAudioFormatDialogue(
-            job=job
+        self.downloadDataAudioFormatDialogue = DownloadDataAudioFormatDialogue(
+            downloadData=downloadData
         )
 
-        job.bind(
-            downloadType=lambda instance, value: self._onJobDownloadType(instance, value)
+        downloadData.bind(
+            downloadType=lambda instance, value: self._onDownloadDownloadType(instance, value)
         )
 
-        self.jobVideoFormatDialogue.bind(
-            on_confirm=lambda jobVideoFormatDialogue, videoFormat:
-                self._onVideoFormatConfirmed(jobVideoFormatDialogue, videoFormat)
+        self.downloadDataVideoFormatDialogue.bind(
+            on_confirm=lambda instance, value:
+                self._onVideoFormatConfirmed(instance, value)
         )
 
-        self.jobAudioFormatDialogue.bind(
-            on_confirm=lambda jobAudioFormatDialogue, audioFormat:
-                self._onAudioFormatConfirmed(jobAudioFormatDialogue, audioFormat)
+        self.downloadDataAudioFormatDialogue.bind(
+            on_confirm=lambda instance, value:
+                self._onAudioFormatConfirmed(instance, value)
         )
 
-        self._onJobDownloadType(self, job.downloadType)
+        self._onDownloadDownloadType(self, downloadData.downloadType)
 
-    def _onJobDownloadType(self, instance, value):
+    def _onDownloadDownloadType(self, instance, value)-> None:
         downloadType = value
         if downloadType == "video":
             self.videoDownloadTypeChip.active = True
@@ -271,53 +271,57 @@ class JobOptionsDialogue(MDDialog):
             self.audioDownloadTypeChip.active = True
             self._hideVideoFormatChipButton()
 
-    def _onVideoDownloadTypeChipRelease(self):
-        self.job.downloadType = "video"
+    def _onVideoDownloadTypeChipRelease(self)-> None:
+        self.downloadData.downloadType = "video"
 
-    def _onAudioDownloadTypeChipRelease(self):
-        self.job.downloadType = "audio"
+    def _onAudioDownloadTypeChipRelease(self)-> None:
+        self.downloadData.downloadType = "audio"
 
-    def _onVideoFormatChipRelease(self):
-        self.jobVideoFormatDialogue.open()
+    def _onVideoFormatChipRelease(self)-> None:
+        self.downloadDataVideoFormatDialogue.open()
 
-    def _onAudioFormatChipRelease(self):
-        self.jobAudioFormatDialogue.open()
+    def _onAudioFormatChipRelease(self) -> None:
+        self.downloadDataAudioFormatDialogue.open()
 
     def _onVideoFormatConfirmed(
         self,
-        jobVideoFormatDialogue,
-        videoFormat
-    ):
-        jobVideoFormatDialogue.dismiss()
+        instance,
+        value
+    ) -> None:
+        downloadDataVideoFormatDialogue = instance
+        videoFormat = value
+        downloadDataVideoFormatDialogue.dismiss()
 
     def _onAudioFormatConfirmed(
         self,
-        jobAudioFormatDialogue,
-        audioFormat
-    ):
-        jobAudioFormatDialogue.dismiss()
+        instance,
+        value
+    ) -> None:
+        downloadDataAudioFormatDialogue = instance
+        audioFormat = value
+        downloadDataAudioFormatDialogue.dismiss()
 
-    def _on_download_options_confirmed(self):
+    def _on_download_options_confirmed(self) -> None:
         self.dispatch(
             "on_download_options_confirmed",
-            self.job
+            self.downloadData
         )
         self.dismiss()
 
-    def on_download_options_confirmed(self, job: Job):
+    def on_download_options_confirmed(self, downloadData: DownloadData) -> None:
         """
         Default handler required by Kivy.
         Override or bind to this event externally.
         """
         pass
 
-    def _showVideoFormatChipButton(self):
+    def _showVideoFormatChipButton(self) -> None:
         self.videoFormatChipButton.size_hint_x = self._videoFormatChipButtonDefaultSizeHintx
         self.videoFormatChipButton.width = self.videoFormatChipButton.minimum_width
         self.videoFormatChipButton.opacity = 1
         self.videoFormatChipButton.disabled = False
 
-    def _hideVideoFormatChipButton(self):
+    def _hideVideoFormatChipButton(self) -> None:
         self.videoFormatChipButton.size_hint_x = None
         self.videoFormatChipButton.width = 0
         self.videoFormatChipButton.opacity = 0

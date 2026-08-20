@@ -20,6 +20,8 @@ import Colors
 
 from kivymd.icon_definitions import md_icons
 
+from pathlib import Path
+
 class SettingsScreen(MDScreen):
 
     topAppBar: MDTopAppBar
@@ -27,6 +29,8 @@ class SettingsScreen(MDScreen):
     content: MDBoxLayout
     settingsScreenTitle: MDLabel
     settings: MDBoxLayout
+    videoDownloadSetting: SettingItemRow
+    audioDownloadSetting: SettingItemRow
 
     def on_pre_enter(self):
         self.build_settings()
@@ -79,23 +83,22 @@ class SettingsScreen(MDScreen):
             adaptive_height=True
         )
 
-        self.settings.add_widget(
-            SettingItemRow(
-                title="Video download location",
-                description=str(Settings.videoDownloadDirectory),
-                icon="folder-outline",
-                on_release=lambda instance: Settings.chooseVideoDownloadDirectory()
-            )
+        self.videoDownloadDirectorySettingItemRow = SettingItemRow(
+            title="Video download location",
+            description=str(Settings.videoDownloadDirectory),
+            icon="folder-outline",
+            on_release=lambda instance: Settings.chooseVideoDownloadDirectory()
         )
 
-        self.settings.add_widget(
-            SettingItemRow(
-                title="Audio download location",
-                description=str(Settings.audioDownloadDirectory),
-                icon="folder-outline",
-                on_release=lambda instance: Settings.chooseAudioDownloadDirectory()
-            )
+        self.audioDownloadDirectorySettingItemRow = SettingItemRow(
+            title="Audio download location",
+            description=str(Settings.audioDownloadDirectory),
+            icon="folder-outline",
+            on_release=lambda instance: Settings.chooseAudioDownloadDirectory()
         )
+
+        self.settings.add_widget(self.videoDownloadDirectorySettingItemRow)
+        self.settings.add_widget(self.audioDownloadDirectorySettingItemRow)
 
         self.content.add_widget(self.settingsScreenTitle)
         self.content.add_widget(self.settings)
@@ -105,5 +108,22 @@ class SettingsScreen(MDScreen):
         self.add_widget(self.topAppBar)
         self.add_widget(self.scroll)
 
+        Settings.bind(
+            videoDownloadDirectory=lambda instance, value: self._onSettingsVideoDownloadDirectory(instance, value),
+            audioDownloadDirectory=lambda instance, value: self._onSettingsAudioDownloadDirectory(instance, value)
+        )
+
     def _onTopAppBarBackArrowButtonRelease(self, instance):
         navigateToScreen("home")
+
+    def _onSettingsVideoDownloadDirectory(self, instance, value):
+        print("_onSettingsVideoDownloadDirectory value:", value)
+        videoDownloadDirectory: Path = value
+        self.videoDownloadDirectorySettingItemRow.description = str(videoDownloadDirectory)
+
+    def _onSettingsAudioDownloadDirectory(self, instance, value):
+        print("_onSettingsAudioDownloadDirectory value:", value)
+        audioDownloadDirectory: Path = value
+        self.audioDownloadDirectorySettingItemRow.description = str(audioDownloadDirectory)
+
+

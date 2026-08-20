@@ -12,13 +12,13 @@ from kivy.properties import (
     ObjectProperty
 )
 
-from .Job import Job
+from .DownloadData import DownloadData
 
 import Colors
 
-class JobView(MDCard):
+class DownloadDataView(MDCard):
 
-    job: Job = ObjectProperty(Job())
+    downloadData: DownloadData = ObjectProperty(DownloadData())
     vBoxLayout: MDBoxLayout
     hBoxLayout: MDBoxLayout
     thumbnailImage: AsyncImage
@@ -55,7 +55,7 @@ class JobView(MDCard):
 
         self.thumbnailImage = AsyncImage(
             size_hint=(None, None),
-            source=self.job.thumbnail,
+            source=self.downloadData.thumbnail,
             fit_mode="contain"
         )
 
@@ -66,7 +66,7 @@ class JobView(MDCard):
 
         self.titleLabel = MDLabel(
             size_hint=(1, 1),
-            text=self.job.title,
+            text=self.downloadData.title,
             font_size=sp(14),
             max_lines=1
         )
@@ -77,7 +77,7 @@ class JobView(MDCard):
 
         self.statusLabel = MDLabel(
             theme_text_color="Custom",
-            text=str(self.job.eta),
+            text=str(self.downloadData.eta),
             size_hint=(1, 1),
             text_color=(0.5176, 0.5176, 0.5176, 1),
             font_size=sp(12)
@@ -110,7 +110,7 @@ class JobView(MDCard):
             height=lambda instance, value: self._onContentLayoutHeight(instance, value)
         )
 
-        self._onJobChanged(self, self.job)
+        self._onDownloadDataChanged(self, self.downloadData)
 
     def _onContentLayoutHeight(self, instance, value):
         contentLayoutHeight = value
@@ -119,9 +119,9 @@ class JobView(MDCard):
 
     def _updateStatusLabel(self):
 
-        downloadedBytes = self.job.downloadedBytes
-        totalBytes = self.job.totalBytes
-        eta = self.job.eta
+        downloadedBytes = self.downloadData.downloadedBytes
+        totalBytes = self.downloadData.totalBytes
+        eta = self.downloadData.eta
 
         downloadedMB = round(downloadedBytes / (1024 * 1024))
         totalMB = round(totalBytes / (1024 * 1024))
@@ -139,12 +139,12 @@ class JobView(MDCard):
             f"{downloadedMB} MB of {totalMB} MB / {etaStr}"
         )
 
-    def _onJobThumbnail(self, instance, value):
-        print("_onJobThumbnail value: ", value)
+    def _onDownloadDataThumbnail(self, instance, value):
+        print("_onDownloadDataThumbnail value: ", value)
         self.thumbnailImage.source = value
 
-    def _onJobTitle(self, instance, value):
-        print("_onJobTitle value: ", value)
+    def _onDownloadDataTitle(self, instance, value):
+        print("_onDownloadDataTitle value: ", value)
 
         title = value or ""
 
@@ -155,43 +155,46 @@ class JobView(MDCard):
 
         self.titleLabel.text = title
 
-    def _onJobProgress(self, instance, value):
-        print("_onJobProgress value: ", value)
+    def _onDownloadDataProgress(self, instance, value):
+        print("_onDownloadDataProgress value: ", value)
         self.progressIndicator.value = value * 100
 
-    def _onJobDownloadedBytes(self, instance, value):
-        print("_onJobDownloadedBytes value: ", value)
+    def _onDownloadDataDownloadedBytes(self, instance, value):
+        print("_onDownloadDataDownloadedBytes value: ", value)
         self._updateStatusLabel()
 
-    def _onJobEta(self, instance, value) -> None:
-        print("_onJobEta value: ", value)
+    def _onDownloadDataEta(self, instance, value) -> None:
+        print("_onDownloadDataEta value: ", value)
         self._updateStatusLabel()
 
-    def _onJobSpeed(self, instance, value):
-        print("_onJobSpeed value", value)
+    def _onDownloadDataSpeed(self, instance, value):
+        print("_onDownloadDataSpeed value", value)
 
-    def _onJobStatus(self, instance, value):
+    def _onDownloadDataStatus(self, instance, value):
         newStatus = value
-        print("_onJobStatus value", value)
+        print("_onDownloadDataStatus value", value)
 
-    def _onJobChanged(self, instance, job):
+    def _onDownloadDataChanged(self, instance, value):
 
-        if not job:
+        downloadData: DownloadData = value
+
+        if not downloadData:
             return
 
-        job.bind(
-            thumbnail=lambda instance, value: self._onJobThumbnail(instance, value),
-            title=lambda instance, value: self._onJobTitle(instance, value),
-            progress=lambda instance, value: self._onJobProgress(instance, value),
-            status=lambda instance, value: self._onJobStatus(instance, value),
-            eta=lambda instance, value: self._onJobEta(instance, value),
-            downloadedBytes=lambda instance, value: self._onJobDownloadedBytes(instance, value),
-            speed=lambda instance, value: self._onJobSpeed(instance, value)
+        downloadData.bind(
+            thumbnail=lambda instance, value: self._onDownloadDataThumbnail(instance, value),
+            title=lambda instance, value: self._onDownloadDataTitle(instance, value),
+            progress=lambda instance, value: self._onDownloadDataProgress(instance, value),
+            status=lambda instance, value: self._onDownloadDataStatus(instance, value),
+            eta=lambda instance, value: self._onDownloadDataEta(instance, value),
+            downloadedBytes=lambda instance, value: self._onDownloadDataDownloadedBytes(instance, value),
+            speed=lambda instance, value: self._onDownloadDataSpeed(instance, value)
         )
 
-        self._onJobThumbnail(instance, job.thumbnail)
-        self._onJobTitle(instance, job.title)
-        self._onJobProgress(instance, job.progress)
-        self._onJobStatus(instance, job.status)
-        self._onJobEta(instance, job.eta)
-        self._onJobSpeed(instance, job.speed)
+        self._onDownloadDataThumbnail(instance, downloadData.thumbnail)
+        self._onDownloadDataTitle(instance, downloadData.title)
+        self._onDownloadDataProgress(instance, downloadData.progress)
+        self._onDownloadDataStatus(instance, downloadData.status)
+        self._onDownloadDataEta(instance, downloadData.eta)
+        self._onDownloadDataDownloadedBytes(instance, downloadData.downloadedBytes)
+        self._onDownloadDataSpeed(instance, downloadData.speed)

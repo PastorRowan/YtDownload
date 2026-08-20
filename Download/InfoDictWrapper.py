@@ -4,21 +4,22 @@ from typing import (
     Set
 )
 
-from . import (
-    Types
+from .Types import (
+    InfoDict,
+    ALLOWED_VIDEO_EXTS,
+    ALLOWED_VIDEO_HEIGHTS,
+    ALLOWED_AUDIO_EXTS,
+    ALLOWED_ABRS
 )
-from .Job import Job
 
 class InfoDictWrapper():
 
-    infoDict: Types.InfoDict
+    infoDict: InfoDict
 
     def __init__(self, infoDictArg):
         self.infoDict = infoDictArg
 
     def getAvailableVideoExts(self) -> List[str]:
-
-        ALLOWED_VIDEO_EXTS = Job.ALLOWED_VIDEO_EXTS
 
         formats = self.infoDict.get("formats") or []
 
@@ -32,8 +33,6 @@ class InfoDictWrapper():
         return sorted(exts)
 
     def getAvailableVideoHeights(self) -> List[str]:
-
-        ALLOWED_VIDEO_HEIGHTS = Job.ALLOWED_VIDEO_HEIGHTS
 
         formats = self.infoDict.get("formats") or []
 
@@ -53,8 +52,6 @@ class InfoDictWrapper():
 
     def getAvailableAudioExts(self) -> List[str]:
 
-        ALLOWED_AUDIO_EXTS = Job.ALLOWED_AUDIO_EXTS
-
         formats = self.infoDict.get("formats") or []
 
         exts: Set[str] = set()
@@ -68,8 +65,6 @@ class InfoDictWrapper():
         return sorted(exts)
 
     def getAvailableAudioAbrs(self) -> list[str]:
-
-        ALLOWED_ABRS = Job.ALLOWED_ABRS
 
         formats = self.infoDict.get("formats") or []
 
