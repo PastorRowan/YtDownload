@@ -234,7 +234,7 @@ class HomeScreen(MDScreen):
         self.downloadDataOptionsDialogue.downloadData = downloadData
         self.downloadDataOptionsDialogue.open()
 
-    def _onDownloadDataOptionsDialogueConfirmed(self, instance, value: Download.runDownload):
+    def _onDownloadDataOptionsDialogueConfirmed(self, instance, value):
 
         downloadData: Download.DownloadData = value
 

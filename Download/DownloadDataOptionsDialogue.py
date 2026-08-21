@@ -36,6 +36,7 @@ from kivy.properties import (
 )
 
 from .DownloadData import DownloadData
+from .Types import DownloadType
 from .DownloadDataVideoFormatDialogue import DownloadDataVideoFormatDialogue
 from .DownloadDataAudioFormatDialogue import DownloadDataAudioFormatDialogue
 
@@ -261,26 +262,31 @@ class DownloadDataOptionsDialogue(MDDialog):
         self._onDownloadDownloadType(self, downloadData.downloadType)
 
     def _onDownloadDownloadType(self, instance, value)-> None:
+        print("_onDownloadDownloadType value: value")
         downloadType = value
-        if downloadType == "video":
+        if downloadType == DownloadType.VIDEO:
             self.videoDownloadTypeChip.active = True
             self.audioDownloadTypeChip.active = False
             self._showVideoFormatChipButton()
-        elif downloadType == "audio":
+        elif downloadType == DownloadType.AUDIO:
             self.videoDownloadTypeChip.active = False
             self.audioDownloadTypeChip.active = True
             self._hideVideoFormatChipButton()
 
     def _onVideoDownloadTypeChipRelease(self)-> None:
-        self.downloadData.downloadType = "video"
+        print("_onVideoDownloadTypeChipRelease")
+        self.downloadData.downloadType = DownloadType.VIDEO
 
     def _onAudioDownloadTypeChipRelease(self)-> None:
-        self.downloadData.downloadType = "audio"
+        print("_onAudioDownloadTypeChipRelease")
+        self.downloadData.downloadType = DownloadType.AUDIO
 
     def _onVideoFormatChipRelease(self)-> None:
+        print("_onVideoFormatChipRelease")
         self.downloadDataVideoFormatDialogue.open()
 
     def _onAudioFormatChipRelease(self) -> None:
+        print("_onAudioFormatChipRelease")
         self.downloadDataAudioFormatDialogue.open()
 
     def _onVideoFormatConfirmed(
@@ -288,6 +294,7 @@ class DownloadDataOptionsDialogue(MDDialog):
         instance,
         value
     ) -> None:
+        print("_onVideoFormatConfirmed value: ", value)
         downloadDataVideoFormatDialogue = instance
         videoFormat = value
         downloadDataVideoFormatDialogue.dismiss()
@@ -297,11 +304,13 @@ class DownloadDataOptionsDialogue(MDDialog):
         instance,
         value
     ) -> None:
+        print("_onAudioFormatConfirmed value: ", value)
         downloadDataAudioFormatDialogue = instance
         audioFormat = value
         downloadDataAudioFormatDialogue.dismiss()
 
     def _on_download_options_confirmed(self) -> None:
+        print("_on_download_options_confirmed")
         self.dispatch(
             "on_download_options_confirmed",
             self.downloadData
@@ -309,6 +318,7 @@ class DownloadDataOptionsDialogue(MDDialog):
         self.dismiss()
 
     def on_download_options_confirmed(self, downloadData: DownloadData) -> None:
+        print("on_download_options_confirmed")
         """
         Default handler required by Kivy.
         Override or bind to this event externally.
@@ -316,12 +326,14 @@ class DownloadDataOptionsDialogue(MDDialog):
         pass
 
     def _showVideoFormatChipButton(self) -> None:
+        print("_showVideoFormatChipButton")
         self.videoFormatChipButton.size_hint_x = self._videoFormatChipButtonDefaultSizeHintx
         self.videoFormatChipButton.width = self.videoFormatChipButton.minimum_width
         self.videoFormatChipButton.opacity = 1
         self.videoFormatChipButton.disabled = False
 
     def _hideVideoFormatChipButton(self) -> None:
+        print("_hideVideoFormatChipButton")
         self.videoFormatChipButton.size_hint_x = None
         self.videoFormatChipButton.width = 0
         self.videoFormatChipButton.opacity = 0

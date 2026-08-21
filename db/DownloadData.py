@@ -188,15 +188,15 @@ def createDownload(downloadTable: DOWNLOAD_DATA_TABLE) -> int:
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     """, (
         downloadTable.url,
-        downloadTable.downloadType.value,
-        downloadTable.videoExt.value,
+        downloadTable.downloadType,
+        downloadTable.videoExt,
         downloadTable.videoHeight,
-        downloadTable.audioExt.value,
+        downloadTable.audioExt,
         downloadTable.abr,
         downloadTable.title,
         downloadTable.channel,
         downloadTable.thumbnail,
-        downloadTable.status.value,
+        downloadTable.status,
         downloadTable.progress,
         downloadTable.totalBytes,
         downloadTable.downloadedBytes

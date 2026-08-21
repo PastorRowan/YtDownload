@@ -1,8 +1,8 @@
 
 from enum import StrEnum
 
-def strEnumToTuple(enum: type[StrEnum]) -> tuple[str, ...]:
-    return tuple(value.value for value in enum)
+def strEnumToTuple(enum: type[StrEnum]) -> tuple[StrEnum, ...]:
+    return tuple(enum)
 
 class DownloadType(StrEnum):
     VIDEO = "video"
@@ -11,6 +11,7 @@ class DownloadType(StrEnum):
     def default(cls):
         return cls.VIDEO
 ALLOWED_DOWNLOAD_TYPES: tuple[DownloadType] = strEnumToTuple(DownloadType)
+print("ALLOWED_DOWNLOAD_TYPES: ", ALLOWED_DOWNLOAD_TYPES)
 
 class VideoExt(StrEnum):
     WEBM = "webm"
@@ -19,6 +20,7 @@ class VideoExt(StrEnum):
     def default(cls):
         return cls.WEBM
 ALLOWED_VIDEO_EXTS: tuple[VideoExt] = strEnumToTuple(VideoExt)
+print("ALLOWED_VIDEO_EXTS: ", ALLOWED_VIDEO_EXTS)
 
 class VideoHeight(StrEnum):
     P2160 = "2160"
@@ -32,6 +34,7 @@ class VideoHeight(StrEnum):
     def default(cls):
         return cls.P720
 ALLOWED_VIDEO_HEIGHTS: tuple[VideoHeight] = strEnumToTuple(VideoHeight)
+print("ALLOWED_VIDEO_HEIGHTS: ", ALLOWED_VIDEO_HEIGHTS)
 
 class AudioExt(StrEnum):
     OPUS = "opus"
@@ -40,6 +43,7 @@ class AudioExt(StrEnum):
     def default(cls):
         return cls.OPUS
 ALLOWED_AUDIO_EXTS: tuple[AudioExt] = strEnumToTuple(AudioExt)
+print("ALLOWED_AUDIO_EXTS: ", ALLOWED_AUDIO_EXTS)
 
 class Abr(StrEnum):
     K192 = "192"
@@ -50,6 +54,7 @@ class Abr(StrEnum):
     def default(cls):
         return cls.K192
 ALLOWED_ABRS: tuple[Abr] = strEnumToTuple(Abr)
+print("ALLOWED_ABRS: ", ALLOWED_ABRS)
 
 class Status(StrEnum):
     QUEUED = "queued"
@@ -62,3 +67,4 @@ class Status(StrEnum):
     def default(cls):
         return cls.QUEUED
 ALLOWED_DOWNLOAD_STATUSES: tuple[Status] = strEnumToTuple(Status)
+print("ALLOWED_DOWNLOAD_STATUSES: ", ALLOWED_DOWNLOAD_STATUSES)
