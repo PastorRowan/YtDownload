@@ -10,7 +10,7 @@ from kivy.properties import (
     BooleanProperty
 )
 
-from utils import ChooseDirectory
+from utils.ChooseDirectory import ChooseDirectory
 
 from db.Settings import getSettings, saveSettings, SETTINGS_TABLE
 
