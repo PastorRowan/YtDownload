@@ -1,2 +1,7 @@
 
-source venv/bin/activate
+#!/usr/bin/env bash
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PARENT_DIR="$SCRIPT_DIR/.."
+
+source "$SCRIPT_PARENT_DIR/venv/bin/activate"

@@ -1,6 +1,9 @@
 
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PARENT_DIR="$SCRIPT_DIR/.."
+
 set -e
 
 echo "Updating package lists..."
@@ -53,7 +56,7 @@ echo "Checking Python..."
 python3.11 --version
 
 echo "Moving up to parent directory..."
-cd ..
+cd "$SCRIPT_PARENT_DIR"
 
 echo "Creating Python 3.11 virtual environment..."
 python3.11 -m venv venv

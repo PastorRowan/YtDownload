@@ -4,6 +4,8 @@
 *.py[cod]
 *$py.class
 
+/bin
+
 /yt-dlp
 
 /yt-dlp/
