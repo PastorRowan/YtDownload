@@ -132,10 +132,6 @@ def runDownload(downloadData: DownloadData) -> None:
                 "ejs:github"
             ],
             "concurrent_fragments": 16,
-            "downloader": "aria2c",
-            "downloader_args": {
-                "aria2c": "-x 16 -s 16 -k 1M"
-            },
             # leave default for ffmpeg merge for video and audio format
             # "postprocessors": [],
             "postprocessor_args": {

@@ -14,6 +14,8 @@ from utils.ChooseDirectory import ChooseDirectory
 
 from db.Settings import getSettings, saveSettings, SETTINGS_TABLE
 
+from kivy.clock import Clock
+
 class SettingsClass(EventDispatcher):
 
     downloadAudioLanguage: str = StringProperty("en")
@@ -39,14 +41,26 @@ class SettingsClass(EventDispatcher):
         self.darkMode = newDarkMode
 
     def chooseVideoDownloadDirectory(self) -> None:
-        chosenVideoDownloadDirectory = ChooseDirectory(title="Choose video download directory")
-        if chosenVideoDownloadDirectory is not None:
-            self.videoDownloadDirectory = chosenVideoDownloadDirectory
+
+        def on_download_directory_selected(directory: Path | None):
+            if directory is not None:
+                self.videoDownloadDirectory = directory
+
+        ChooseDirectory(
+            title="Choose video download directory",
+            on_selected=lambda directory: Clock.schedule_once(lambda dt: on_download_directory_selected(directory))
+        )
 
     def chooseAudioDownloadDirectory(self) -> None:
-        chosenAudioDownloadDirectory = ChooseDirectory(title="Choose audio download directory")
-        if chosenAudioDownloadDirectory is not None:
-            self.audioDownloadDirectory = chosenAudioDownloadDirectory
+
+        def on_download_directory_selected(directory: Path | None):
+            if directory is not None:
+                self.audioDownloadDirectory = directory
+
+        ChooseDirectory(
+            title="Choose audio download directory",
+            on_selected=lambda directory: Clock.schedule_once(lambda dt: on_download_directory_selected(directory))
+        )
 
     def _onPropertyChanged(self, instance, value):
         self.save()
