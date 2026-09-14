@@ -82,7 +82,7 @@ Install the required external binaries for your target development or production
 - [Windows](libs/windows/README.md)
 - [Linux](libs/linux/README.md)
 - [macOS](libs/macos/README.md)
-- [Android arm64-v8a](libs/arm64-v8a/README.MD)
+- [Android arm64-v8a](libs/arm64-v8a/README.md)
 
 ### Installation 
 
