@@ -15,14 +15,15 @@ sys.path.append(str(parent_folder_path))
 
 import config
 
-import utils
+from utils.enviroment import isPythonRightVersion
 
 def addBinary(src, dest) -> str:
     return f"{src}{os.pathsep}{dest}"
 
 def main():
 
-    utils.isPythonRightVersion(3, 13)
+    if not isPythonRightVersion(3, 13):
+        raise Exception("Error: python is not the correct version")
 
     SPECPATH_DIR = config.paths.pyinstaller_spec()
     WORKPATH_DIR = config.paths.pyinstaller_workpath_dir()

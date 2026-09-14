@@ -15,7 +15,8 @@ from utils.enviroment import isPythonRightVersion
 
 def main():
 
-    isPythonRightVersion(3, 11)
+    if not isPythonRightVersion(3, 11):
+        raise Exception("Error: python is not the correct version")
 
     wsl_project_dir = parent_dir
 

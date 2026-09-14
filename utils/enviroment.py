@@ -4,8 +4,7 @@ import sys
 def isPythonRightVersion(
     requiredMajorVersion: int | None = None,
     requiredMinorVersion: int | None = None,
-    requiredMicroVersion: int | None = None,
-    throw: bool = True
+    requiredMicroVersion: int | None = None
 ) -> bool:
 
     REQUIRED_MAJOR = requiredMajorVersion
@@ -47,7 +46,5 @@ def isPythonRightVersion(
             f"{REQUIRED_MAJOR_STR}.{REQUIRED_MINOR_STR}.{REQUIRED_MICRO_STR}"
             f" You are using {CURRENT_MAJOR_STR}.{CURRENT_MINOR_STR}.{CURRENT_MICRO_STR}"
         )
-        if throw:
-            raise Exception("")
 
     return isRightVersion
