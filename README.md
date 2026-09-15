@@ -1,19 +1,24 @@
 
 # YtDownload
 
-A cross platform **KivyMD application for downloading YouTube videos or audio** using <u>yt-dlp</u>.
+A cross-platform **KivyMD application for downloading YouTube videos or audio** using <u>yt-dlp</u>.
 
 > **Note:** YtDownload has currently been tested on only **Windows** and **Android**.
 
 ## Features
 - 📥 Download YouTube videos (video and audio)
 - 🎵 Download audio only
-- 🖥️ Cross-platform application
-- 📱 Android support
-- 💻 Windows support
-- ⚙️ Uses `yt-dlp` for media downloading
-- 🚀 Concurrent downloading support
+- ⚙️ Powered by yt-dlp
 - 📁 Configurable download directories (Only works for Windows, Linux and MacOS at the moment)
+
+## Supported Platforms
+
+| Platform | Run | Build |
+| --- | --- | --- |
+| Windows | ✅ | ✅ |
+| Linux | Not tested | ✅ |
+| MacOS | Not tested | Not tested |
+| Android arm64-v8a | ✅ | ✅ |
 
 ## Demo
 
@@ -27,8 +32,8 @@ YtDownload is built using the following Python packages:
 - [KivyMD](https://kivymd.readthedocs.io/)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 - [Plyer](https://github.com/kivy/plyer)
-- [buildozer]()
-- [pyinstaller]()
+- [Buildozer](https://buildozer.readthedocs.io/en/latest/)
+- [PyInstaller](https://pyinstaller.org/en/stable/)
 
 The project also requires the dependencies of the packages listed above.
 
@@ -81,12 +86,12 @@ Install the required external binaries for your target development or production
 
 - [Windows](libs/windows/README.md)
 - [Linux](libs/linux/README.md)
-- [macOS](libs/macos/README.md)
+- [MacOS](libs/macos/README.md)
 - [Android arm64-v8a](libs/arm64-v8a/README.md)
 
 ### Installation 
 
-Open a console enviroment with python, venv and pip installed.
+Open a console environment with python, venv and pip installed.
 
 **1. Clone the repository**
 ```
@@ -98,12 +103,12 @@ git clone https://github.com/PastorRowan/YtDownload.git
 cd YtDownload
 ```
 
-**3. Create a virtual enviroment**
+**3. Create a virtual environment**
 ```
 python -m venv venv
 ```
 
-**4. Activate the virtual enviroment**
+**4. Activate the virtual environment**
 
 - Windows:
 ```
@@ -111,10 +116,10 @@ python -m venv venv
 ```
 After activation, your terminal should look similar to:
 ```
-(venv) C:\path\to\YtDownload>
+(venv) DriveLetter:\path\to\YtDownload>
 ```
 
-- Linux/macOS:
+- Linux/MacOS:
 ```
 source venv/bin/activate
 ```
@@ -123,14 +128,14 @@ After activation, your terminal should look similar to:
 (venv) /path/to/YtDownload$
 ```
 
-**5. Install Python dependencies to virtual enviroment**
+**5. Install Python dependencies to virtual environment**
 ```
 pip install -r requirements.txt
 ```
 
 **6. Install required binaries**
 
-See
+See the [Install external binaries](#install-external-binaries) section.
 
 **7. Run the application**
 ```
@@ -145,7 +150,7 @@ Before building the application (applies to all platforms):
 1. Follow the [Installation](#installation) instructions above.
 2. Activate the project's virtual environment.
 3. [Install external binaries](#install-external-binaries) for the target operating system and architecture.
-4. Make sure the application can run successfully (if using a console based virtual enviroment, like wsl, then this step cannot be done).
+4. Make sure the application can run successfully (if using a console based virtual environment, like wsl, then this step cannot be done).
 
 ### Desktop (Windows, Linux and MacOS)
 
@@ -165,7 +170,7 @@ cd scripts_desktop
 
 **2. Run the desktop build script**
 ```
-python3 build_desktop.py
+python build_desktop.py
 ```
 
 The script will use PyInstaller to build the application and package the required dependencies and external binaries.
@@ -180,7 +185,100 @@ YtDownload/
 
 ### Android
 
-...
+Android builds are created using `Buildozer` and [python-for-android](https://github.com/kivy/python-for-android).
+
+Android builds must be performed from a Linux environment. On Windows, this project uses [WSL](https://learn.microsoft.com/en-us/windows/wsl/) (Windows Subsystem for Linux).
+
+> Note: WSL is only required for building the Android application. It is not required to run the application on Windows.
+
+#### Windows
+
+If you are building the Android application on Windows, WSL must first be installed and activated.
+
+**1. Traverse to the Android build scripts**
+
+From the project root:
+```
+cd scripts_android
+```
+
+**2. Install WSL**
+
+Run:
+```
+install_wsl.bat
+```
+This script installs the required WSL environment if it is not already installed.
+
+Follow the on-screen instructions to create a Linux user for WSL.
+
+**3. Activate wsl**
+
+Run:
+```
+activate_wsl.bat
+```
+
+A WSL terminal should open. You should now be working inside a Linux environment.
+
+Your terminal should look similar to:
+```
+WSL-username@computer-name:/mnt/DriveLetter/path/to/YtDownload/scripts_android$
+```
+
+> The exact username, computer name, drive letter and path will depend on your system.
+
+**4. Move to the home directory**
+
+Run:
+```
+cd ~
+```
+
+This moves to the WSL user's home directory so that the repository can be cloned and built within the WSL Linux filesystem rather than from the Windows-mounted /mnt/... filesystem.
+
+Building from the Linux filesystem can provide better performance and compatibility with Linux-based Android build tools.
+
+You can now continue with the Linux instructions below.
+
+### Linux
+
+**1. Clone the repository**
+```
+git clone https://github.com/PastorRowan/YtDownload.git
+```
+
+**2. Traverse to the project root directory**
+```
+cd YtDownload
+```
+
+**3. Traverse to the Android build scripts directory**
+```
+cd scripts_android
+```
+
+**4. Give the setup scripts execute permissions**
+```
+chmod +x activate_venv.sh setup_wsl_environment.sh
+```
+
+**5. Setup wsl environment**
+```
+source setup_wsl_environment.sh
+```
+
+**6. Activate venv**
+```
+source activate_venv.sh
+```
+
+**7. Run the build tool**
+```
+python3.11 build_wsl_android_package.py
+```
+
+> Note: Android builds are performed using Buildozer and depend on a number of external tools, repositories, and Python-for-Android recipes. As a result, builds may occasionally fail due to problems outside of this project, such as temporary unavailability of an upstream repository or a dependency failing to compile.<br><br> For example, during development, an Android build failed because the [freetype recipe](https://github.com/kivy/python-for-android/tree/develop/pythonforandroid/recipes/freetype) could not download its source from [savannah.org](https://download.savannah.gnu.org/releases/freetype/). These failures may be temporary and can sometimes be resolved by retrying the build later.<br><br>If a Buildozer build fails, check the error message and the relevant upstream dependency before assuming that the problem is caused by YtDownload.
 
 # License
 

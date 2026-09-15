@@ -38,20 +38,16 @@ venv/
 *.so
 
 libs/arm64-v8a/*
-!libs/arm64-v8a/.gitkeep
-!libs/arm64-v8a/README.MD
-
+!libs/arm64-v8a/README.md
 
 libs/macos/*
-!libs/macos/.gitkeep
-!libs/macos/README.MD
+!libs/macos/README.md
 
 libs/windows/*
-!libs/windows/.gitkeep
-!libs/windows/README.MD
+!libs/windows/README.md
 
 bin/macos/*
-!bin/macos/.gitkeep
+!bin/macos/README.md
 
 bin/windows/*
-!bin/windows/.gitkeep
+!bin/windows/README.md
