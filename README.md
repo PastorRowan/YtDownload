@@ -185,7 +185,7 @@ YtDownload/
 
 ### Android
 
-Android builds are created using `Buildozer` and [python-for-android](https://github.com/kivy/python-for-android).
+Android builds are created using `Buildozer` and `python-for-android`.
 
 Android builds must be performed from a Linux environment. On Windows, this project uses [WSL](https://learn.microsoft.com/en-us/windows/wsl/) (Windows Subsystem for Linux).
 
