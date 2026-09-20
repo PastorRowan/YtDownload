@@ -49,6 +49,8 @@ YtDownload requires the following external binaries for media processing and dow
 
 ## Getting Started
 
+Getting started video
+
 ### Prerequisites
 
 Before installing YtDownload, make sure the following are installed and accessible in your console environment:
