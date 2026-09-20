@@ -74,7 +74,7 @@ python -m venv --help
 
 pip:
 ```
-pip --version
+python -m pip --version
 ```
 
 Git:
