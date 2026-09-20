@@ -22,7 +22,7 @@ A cross-platform **KivyMD application for downloading YouTube videos or audio** 
 
 ## Demo
 
-*Add a demonstration video or GIF here.*
+![YtDownload demo gif](videos/YtDownload_demo_gif.gif)
 
 ## Dependencies
 
@@ -50,6 +50,8 @@ YtDownload requires the following external binaries for media processing and dow
 ## Getting Started
 
 [![Getting Started video](screenshots/Getting_Started_video_thumbnail.png)](https://youtu.be/Upk2nrQtHVU)
+
+See video at [videos/YtDownload_Getting_Started_video.mp4](videos/YtDownload_Getting_Started_video.mp4)
 
 ### Prerequisites
 
