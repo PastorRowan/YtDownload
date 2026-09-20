@@ -49,7 +49,7 @@ YtDownload requires the following external binaries for media processing and dow
 
 ## Getting Started
 
-Getting started video
+[![Getting Started video](screenshots/Getting_Started_video_thumbnail.png)](https://youtu.be/Upk2nrQtHVU)
 
 ### Prerequisites
 
